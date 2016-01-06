@@ -1,0 +1,18 @@
+group 'pl.maxmati.po.ftp'
+version 'unspecified'
+
+apply plugin: 'java'
+apply plugin: 'application'
+
+//noinspection GroovyUnusedAssignment
+mainClassName = 'pl.maxmati.po.ftp.client.Main'
+//noinspection GroovyUnusedAssignment
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.11'
+}

@@ -1,0 +1,4 @@
+rootProject.name = 'ftp'
+include 'server'
+include 'client'
+

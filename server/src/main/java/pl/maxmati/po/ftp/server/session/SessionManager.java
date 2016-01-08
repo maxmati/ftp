@@ -1,5 +1,7 @@
 package pl.maxmati.po.ftp.server.session;
 
+import pl.maxmati.po.ftp.server.UsersManager;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -12,6 +14,12 @@ import java.util.concurrent.Executors;
 public class SessionManager {
     private static final int COMMAND_PORT = 1221;
     private final ExecutorService executor = Executors.newCachedThreadPool();
+    private final UsersManager usersManager;
+
+    public SessionManager(UsersManager usersManager) {
+        this.usersManager = usersManager;
+    }
+
     public void start(){
         try (ServerSocket serverSocket = new ServerSocket(COMMAND_PORT)){
             while (true) {
@@ -25,6 +33,6 @@ public class SessionManager {
     }
 
     private void initSession(Socket socket) throws IOException {
-        executor.submit(new Session(socket));
+        executor.submit(new Session(socket, usersManager));
     }
 }

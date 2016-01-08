@@ -13,6 +13,8 @@ public class Response {
     public static final int USER_LOGGED_IN_CODE = 230;
     //3xx
     public static final int PASSWORD_REQUIRED_CODE = 331;
+    //4xx
+    public static final int INVALID_USER_OR_PASS_CODE = 430;
     //5xx
     public static final int SYNTAX_ERROR_CODE = 501;
     public static final int BAD_SEQUENCE_OF_COMMANDS_CODE = 503;
@@ -25,6 +27,8 @@ public class Response {
         codeFormatMap.put(USER_LOGGED_IN_CODE, "User logged in");
         //3xx
         codeFormatMap.put(PASSWORD_REQUIRED_CODE, "Password required");
+        //4xx
+        codeFormatMap.put(INVALID_USER_OR_PASS_CODE, "Invalid username or password");
         //5xx
         codeFormatMap.put(SYNTAX_ERROR_CODE, "Syntax error in parameters or arguments");
         codeFormatMap.put(BAD_SEQUENCE_OF_COMMANDS_CODE, "Bad sequence of commands");

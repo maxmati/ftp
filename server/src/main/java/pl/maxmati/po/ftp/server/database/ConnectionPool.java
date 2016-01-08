@@ -74,8 +74,10 @@ public class ConnectionPool {
     }
 
     public void releaseConnection(Connection con){
-        reservedConnections.remove(con);
-        freeConnection.add(con);
+        if(reservedConnections.contains(con)) {
+            reservedConnections.remove(con);
+            freeConnection.add(con);
+        }
     }
 
 //    public Connection getConnection() throws SQLException {

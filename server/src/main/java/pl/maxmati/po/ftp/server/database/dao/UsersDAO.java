@@ -10,7 +10,12 @@ import java.sql.*;
  * Created by maxmati on 1/6/16
  */
 public class UsersDAO {
+    private static final String PASSWORD = "password";
+    private static final String SALT = "salt";
+    private static final String ID = "id";
+
     private static final String SELECT_FROM_USERS_WHERE_ID = "SELECT * FROM `users` WHERE id = ?";
+    private static final String SELECT_FROM_USERS_WHERE_USERNAME = "SELECT * FROM users WHERE username = ?";
     private static final String UPDATE_USER_QUERY =
             "UPDATE users " +
             "SET " +
@@ -40,6 +45,31 @@ public class UsersDAO {
                 String salt = rs.getString("salt");
 
                 return new User(id, username, password, salt);
+            } else
+                return null;
+
+        } catch (SQLException e) {
+            throw new DatabaseException(e);
+        } finally {
+            connectionPool.releaseConnection(con);
+        }
+    }
+
+    public User findUserByUsername(String username) {
+        Connection con = null;
+        try {
+            con = connectionPool.reserveConnection();
+            PreparedStatement ps = con.prepareStatement(SELECT_FROM_USERS_WHERE_USERNAME);
+            ps.setString(1, username);
+
+            ResultSet rs = ps.executeQuery();
+            if(rs.next()){
+                int id = rs.getInt(ID);
+                String password = rs.getString(PASSWORD);
+                String salt = rs.getString(SALT);
+
+                return new User(id, username, password, salt);
+
             } else
                 return null;
 

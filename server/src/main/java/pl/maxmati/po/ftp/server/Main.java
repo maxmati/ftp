@@ -1,5 +1,7 @@
 package pl.maxmati.po.ftp.server;
 
+import pl.maxmati.po.ftp.server.database.ConnectionPool;
+import pl.maxmati.po.ftp.server.database.dao.UsersDAO;
 import pl.maxmati.po.ftp.server.session.SessionManager;
 
 /**
@@ -8,7 +10,7 @@ import pl.maxmati.po.ftp.server.session.SessionManager;
 public class Main {
     public static void main(String[] args){
         System.out.println("Starting ftp server");
-        SessionManager manager = new SessionManager();
+        SessionManager manager = new SessionManager(new UsersManager(new UsersDAO(ConnectionPool.getInstance())));
         manager.start();
     }
 }

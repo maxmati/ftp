@@ -3,6 +3,7 @@ package pl.maxmati.po.ftp.server.session;
 import pl.maxmati.po.ftp.server.Command;
 import pl.maxmati.po.ftp.server.Response;
 import pl.maxmati.po.ftp.server.User;
+import pl.maxmati.po.ftp.server.UsersManager;
 import pl.maxmati.po.ftp.server.network.SessionSocket;
 
 import java.io.IOException;
@@ -14,14 +15,17 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class Session implements Runnable{
     private final Socket socket;
+    private final UsersManager manager;
     private final SessionSocket reader;
 
     private final AtomicBoolean running = new AtomicBoolean(true);
 
     private User user = null;
+    private boolean authenticated = false;
 
-    public Session(Socket socket) throws IOException {
+    public Session(Socket socket, UsersManager usersManager) throws IOException {
         this.socket = socket;
+        this.manager = usersManager;
         this.reader = new SessionSocket(socket);
     }
 
@@ -71,17 +75,23 @@ public class Session implements Runnable{
 
     private void startLoggingIn(String username) {
         if(user == null){
-            user = new User(username);
-            reader.sendResponse(new Response(Response.PASSWORD_REQUIRED_CODE));
+            user = manager.getByName(username);
+            if(user != null)
+                reader.sendResponse(new Response(Response.PASSWORD_REQUIRED_CODE));
+            else
+                reader.sendResponse(new Response(Response.INVALID_USER_OR_PASS_CODE));
         } else {
             reader.sendResponse(new Response(Response.BAD_SEQUENCE_OF_COMMANDS_CODE));
         }
     }
 
     private void finishLoggingIn(String password) {
-        if(user != null && user.getPassword() == null){
-            user.setPassword(password);
-            reader.sendResponse(new Response(Response.USER_LOGGED_IN_CODE));
+        if(user != null && !authenticated){
+            authenticated = manager.validatePassword(user, password);
+            if(authenticated)
+                reader.sendResponse(new Response(Response.USER_LOGGED_IN_CODE));
+            else
+                reader.sendResponse(new Response(Response.INVALID_USER_OR_PASS_CODE));
         } else {
             reader.sendResponse(new Response(Response.BAD_SEQUENCE_OF_COMMANDS_CODE));
         }

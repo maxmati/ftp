@@ -8,9 +8,9 @@ import java.util.Objects;
 @SuppressWarnings("unused")
 public class User {
     private Integer id = null;
-    private String username;
-    private String password;
-    private String salt;
+    private String username = null;
+    private String password = null;
+    private String salt = null;
 
 
     public User(String username, String password, String salt) {
@@ -22,6 +22,10 @@ public class User {
         this.username = username;
         this.password = password;
         this.salt = salt;
+    }
+
+    public User(String username) {
+        this.username = username;
     }
 
     public Integer getId() {

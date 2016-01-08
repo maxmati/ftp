@@ -9,6 +9,7 @@ import java.util.Map;
  */
 public class Response {
     //2xx
+    public static final int COMMAND_SUCCESSFUL_CODE = 200;
     public static final int BYE_CODE = 221;
     public static final int USER_LOGGED_IN_CODE = 230;
     //3xx
@@ -23,6 +24,7 @@ public class Response {
 
     static {
         //2xx
+        codeFormatMap.put(COMMAND_SUCCESSFUL_CODE, "Command successful");
         codeFormatMap.put(BYE_CODE, "Bye");
         codeFormatMap.put(USER_LOGGED_IN_CODE, "User logged in");
         //3xx

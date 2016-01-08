@@ -7,22 +7,31 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.net.Socket;
 import java.util.Arrays;
+import java.util.NoSuchElementException;
 import java.util.Scanner;
 
 /**
  * Created by maxmati on 1/8/16
  */
-public class SessionSocket {
+public class Connection {
+    private final Socket socket;
     private final Scanner scanner;
     private final PrintStream output;
 
-    public SessionSocket(Socket socket) throws IOException {
+    public Connection(Socket socket) throws IOException {
+        this.socket = socket;
         this.scanner = new Scanner(socket.getInputStream());
         this.output = new PrintStream(socket.getOutputStream());
     }
 
     public Command fetchCommand(){
-        String line = scanner.nextLine();
+        String line;
+        try {
+            line = scanner.nextLine();
+        } catch (NoSuchElementException e){
+            return null;
+        }
+
         String[] tokens = line.split(" ");
 
         final Command.Type type = Command.Type.valueOf(tokens[0]);
@@ -36,5 +45,17 @@ public class SessionSocket {
     public void sendResponse(Response response) {
         output.print(response.toNetworkString());
         System.out.println("Sent response: " + response);
+    }
+
+    public void close(){
+        try {
+            socket.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public boolean isClosed() {
+        return socket.isClosed();
     }
 }

@@ -20,4 +20,8 @@ public class Filesystem {
             throw new RuntimeException(e);
         }
     }
+
+    public boolean isValid(Path path) {
+        return Files.exists(path);
+    }
 }

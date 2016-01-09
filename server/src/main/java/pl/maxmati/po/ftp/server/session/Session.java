@@ -95,12 +95,30 @@ public class Session implements Runnable{
                 startPassiveConnection();
                 break;
             case NLST:
-                startMachineListing(command);
+                startMachineListing();
+                break;
+            case PWD:
+                commandConnection.sendResponse(new Response(Response.Type.CURRENT_DIRECTORY, cwd.toString()));
+                break;
+            case CWD:
+                changeDirectory(command.getParam(0));
                 break;
         }
     }
 
-    private void startMachineListing(Command command) {
+    private void changeDirectory(String path) {
+        Path relPath = Paths.get(path);
+        Path newPath = cwd.resolve(relPath).normalize();
+        if(filesystem.isValid(newPath)){
+            System.out.println("Changing working directory to: " + newPath);
+            cwd = newPath;
+            commandConnection.sendResponse(new Response(Response.Type.REQUEST_COMPLETED, "CWD"));
+        } else {
+            commandConnection.sendResponse(new Response(Response.Type.NO_SUCH_FILE_OR_DIR, path));
+        }
+    }
+
+    private void startMachineListing() {
         if(passiveConnection == null){
             commandConnection.sendResponse(new Response(Response.Type.BAD_SEQUENCE_OF_COMMANDS));
             return;

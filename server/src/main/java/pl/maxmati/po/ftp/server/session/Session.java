@@ -29,7 +29,6 @@ public class Session implements Runnable{
     private boolean authenticated = false;
     private PassiveConnection passiveConnection = null;
     private Path cwd = Paths.get("/home/maxmati/");
-//    private Command currentCommand = null;
 
     public Session(Socket socket, UsersManager usersManager, ExecutorService executor) throws IOException {
         this.executor = executor;
@@ -59,15 +58,15 @@ public class Session implements Runnable{
 
     public void dataSent(boolean success) {
         if(success)
-            commandConnection.sendResponse(new Response(Response.TRANSFER_COMPLETE_CODE));
+            commandConnection.sendResponse(new Response(Response.Type.TRANSFER_COMPLETE));
         else
-            commandConnection.sendResponse(new Response(451));
+            commandConnection.sendResponse(new Response(Response.Type.ABORTED_LOCAL_ERROR));
 
         passiveConnection = null;
     }
 
     private void quit() {
-        commandConnection.sendResponse(new Response(Response.BYE_CODE));
+        commandConnection.sendResponse(new Response(Response.Type.BYE));
         running.set(false);
         commandConnection.close();
     }
@@ -75,7 +74,7 @@ public class Session implements Runnable{
     private void processCommand(Command command) {
         if(!command.hasValidNumberOfArgs()) {
             System.out.println("Syntax error in command: " + command + ". Invalid number of args");
-            commandConnection.sendResponse(new Response(Response.SYNTAX_ERROR_CODE));
+            commandConnection.sendResponse(new Response(Response.Type.SYNTAX_ERROR));
             return;
         }
         watchdog.reset();
@@ -90,7 +89,7 @@ public class Session implements Runnable{
                 quit();
                 break;
             case NOOP:
-                commandConnection.sendResponse(new Response(Response.COMMAND_SUCCESSFUL_CODE));
+                commandConnection.sendResponse(new Response(Response.Type.COMMAND_SUCCESSFUL));
                 break;
             case PASV:
                 startPassiveConnection();
@@ -103,12 +102,11 @@ public class Session implements Runnable{
 
     private void startMachineListing(Command command) {
         if(passiveConnection == null){
-            commandConnection.sendResponse(new Response(Response.BAD_SEQUENCE_OF_COMMANDS_CODE));
+            commandConnection.sendResponse(new Response(Response.Type.BAD_SEQUENCE_OF_COMMANDS));
             return;
         }
 
-//        currentCommand = command;
-        commandConnection.sendResponse(new Response(Response.OPENING_PASSIVE_CONNECTION_CODE, "ASCII", "/bin/ls"));
+        commandConnection.sendResponse(new Response(Response.Type.OPENING_PASSIVE_CONNECTION, "ASCII", "/bin/ls"));
         passiveConnection.sendData(filesystem.listFiles(cwd));
 
     }
@@ -119,7 +117,7 @@ public class Session implements Runnable{
 
         commandConnection.sendResponse(
                 new Response(
-                        Response.ENTERING_PASSIVE_MODE_CODE,
+                        Response.Type.ENTERING_PASSIVE_MODE,
                         127, 0, 0, 1, port / 256, port % 256
                 )
         );
@@ -129,11 +127,11 @@ public class Session implements Runnable{
         if(user == null){
             user = manager.getByName(username);
             if(user != null)
-                commandConnection.sendResponse(new Response(Response.PASSWORD_REQUIRED_CODE));
+                commandConnection.sendResponse(new Response(Response.Type.PASSWORD_REQUIRED));
             else
-                commandConnection.sendResponse(new Response(Response.INVALID_USER_OR_PASS_CODE));
+                commandConnection.sendResponse(new Response(Response.Type.INVALID_USER_OR_PASS));
         } else {
-            commandConnection.sendResponse(new Response(Response.BAD_SEQUENCE_OF_COMMANDS_CODE));
+            commandConnection.sendResponse(new Response(Response.Type.BAD_SEQUENCE_OF_COMMANDS));
         }
     }
 
@@ -141,11 +139,11 @@ public class Session implements Runnable{
         if(user != null && !authenticated){
             authenticated = manager.validatePassword(user, password);
             if(authenticated)
-                commandConnection.sendResponse(new Response(Response.USER_LOGGED_IN_CODE));
+                commandConnection.sendResponse(new Response(Response.Type.USER_LOGGED_IN));
             else
-                commandConnection.sendResponse(new Response(Response.INVALID_USER_OR_PASS_CODE));
+                commandConnection.sendResponse(new Response(Response.Type.INVALID_USER_OR_PASS));
         } else {
-            commandConnection.sendResponse(new Response(Response.BAD_SEQUENCE_OF_COMMANDS_CODE));
+            commandConnection.sendResponse(new Response(Response.Type.BAD_SEQUENCE_OF_COMMANDS));
         }
     }
 }

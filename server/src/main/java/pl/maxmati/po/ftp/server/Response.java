@@ -40,12 +40,14 @@ public class Response {
         USER_LOGGED_IN(             230, "User logged in", 0),
         REQUEST_COMPLETED(          250, "%s was successful", 1),
         CURRENT_DIRECTORY(          257, "\"%s\" is current directory", 1),
+        CREATED_DIRECTORY(          257, "%s was created", 1),
         PASSWORD_REQUIRED(          331, "Password required", 0),
         INVALID_USER_OR_PASS(       430, "Invalid username or password", 0),
         ABORTED_LOCAL_ERROR(        451, "Requested action aborted. Local error in processing.", 0),
         SYNTAX_ERROR(               501, "Syntax error in parameters or arguments", 0),
         BAD_SEQUENCE_OF_COMMANDS(   503, "Bad sequence of commands", 0),
-        NO_SUCH_FILE_OR_DIR(       550, "%s: No such file or directory", 1);
+        NO_SUCH_FILE_OR_DIR(        550, "%s: No such file or directory", 1),
+        FILE_EXISTS(                550, "%s: File exists", 1);
 
         private final int code;
         private final String format;

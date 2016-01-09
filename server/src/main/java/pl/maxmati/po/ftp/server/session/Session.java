@@ -28,7 +28,7 @@ public class Session implements Runnable{
     private User user = null;
     private boolean authenticated = false;
     private PassiveConnection passiveConnection = null;
-    private Path cwd = Paths.get("/home/maxmati/");
+    private Path cwd = Paths.get("/home/maxmati/tmp");
 
     public Session(Socket socket, UsersManager usersManager, ExecutorService executor) throws IOException {
         this.executor = executor;
@@ -103,13 +103,46 @@ public class Session implements Runnable{
             case CWD:
                 changeDirectory(command.getParam(0));
                 break;
+            case MKD:
+                createDirectory(command.getParam(0));
+                break;
+            case RMD:
+                remove(command.getParam(0), true);
+                break;
+            case DELE:
+                remove(command.getParam(0), false);
+                break;
         }
+    }
+
+    private void remove(String pathName, boolean directory) {
+        Path path = Paths.get(pathName);
+        if(!path.isAbsolute())
+            path = cwd.resolve(pathName);
+
+        if(filesystem.remove(path, directory))
+            commandConnection.sendResponse(new Response(Response.Type.REQUEST_COMPLETED, "RMD"));
+        else
+            commandConnection.sendResponse(new Response(Response.Type.NO_SUCH_FILE_OR_DIR, pathName));
+    }
+
+    private void createDirectory(String directory) {
+        Path path = Paths.get(directory);
+        if(!path.isAbsolute())
+            path = cwd.resolve(directory);
+
+        if(!filesystem.isValidDirectory(path.getParent()))
+            commandConnection.sendResponse(new Response(Response.Type.NO_SUCH_FILE_OR_DIR, directory));
+        else if(filesystem.createDir(path))
+            commandConnection.sendResponse(new Response(Response.Type.CREATED_DIRECTORY, directory));
+        else
+            commandConnection.sendResponse(new Response(Response.Type.FILE_EXISTS, directory));
     }
 
     private void changeDirectory(String path) {
         Path relPath = Paths.get(path);
         Path newPath = cwd.resolve(relPath).normalize();
-        if(filesystem.isValid(newPath)){
+        if(filesystem.isValidDirectory(newPath)){
             System.out.println("Changing working directory to: " + newPath);
             cwd = newPath;
             commandConnection.sendResponse(new Response(Response.Type.REQUEST_COMPLETED, "CWD"));

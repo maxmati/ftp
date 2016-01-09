@@ -80,7 +80,7 @@ public class ConnectionPool {
         }
     }
 
-//    public Connection getConnection() throws SQLException {
+//    public CommandConnection getConnection() throws SQLException {
 //        if(connection == null || connection.isClosed()) {
 //            connection = createConnection();
 //            prepareDatabase();

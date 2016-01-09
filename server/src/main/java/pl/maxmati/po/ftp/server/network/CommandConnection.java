@@ -13,12 +13,12 @@ import java.util.Scanner;
 /**
  * Created by maxmati on 1/8/16
  */
-public class Connection {
+public class CommandConnection {
     private final Socket socket;
     private final Scanner scanner;
     private final PrintStream output;
 
-    public Connection(Socket socket) throws IOException {
+    public CommandConnection(Socket socket) throws IOException {
         this.socket = socket;
         this.scanner = new Scanner(socket.getInputStream());
         this.output = new PrintStream(socket.getOutputStream());

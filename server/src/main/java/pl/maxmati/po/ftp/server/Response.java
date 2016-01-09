@@ -8,9 +8,13 @@ import java.util.Map;
  * Created by maxmati on 1/8/16
  */
 public class Response {
+    //1xx
+    public static final int OPENING_PASSIVE_CONNECTION_CODE = 150;
     //2xx
     public static final int COMMAND_SUCCESSFUL_CODE = 200;
     public static final int BYE_CODE = 221;
+    public static final int TRANSFER_COMPLETE_CODE = 226;
+    public static final int ENTERING_PASSIVE_MODE_CODE = 227;
     public static final int USER_LOGGED_IN_CODE = 230;
     //3xx
     public static final int PASSWORD_REQUIRED_CODE = 331;
@@ -23,9 +27,13 @@ public class Response {
     private static Map<Integer, String> codeFormatMap = new HashMap<>();
 
     static {
+        //1xx
+        codeFormatMap.put(OPENING_PASSIVE_CONNECTION_CODE, "Opening %s mode data connection for '%s'");
         //2xx
         codeFormatMap.put(COMMAND_SUCCESSFUL_CODE, "Command successful");
         codeFormatMap.put(BYE_CODE, "Bye");
+        codeFormatMap.put(TRANSFER_COMPLETE_CODE, "Transfer complete");
+        codeFormatMap.put(ENTERING_PASSIVE_MODE_CODE, "Entering Passive Mode (%d,%d,%d,%d,%d,%d)");
         codeFormatMap.put(USER_LOGGED_IN_CODE, "User logged in");
         //3xx
         codeFormatMap.put(PASSWORD_REQUIRED_CODE, "Password required");

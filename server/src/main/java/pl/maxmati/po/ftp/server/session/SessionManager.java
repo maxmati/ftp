@@ -22,6 +22,7 @@ public class SessionManager {
 
     public void start(){
         try (ServerSocket serverSocket = new ServerSocket(COMMAND_PORT)){
+            //noinspection InfiniteLoopStatement
             while (true) {
                 Socket socket = serverSocket.accept();
                 System.out.println("New connection on command port accepted from: " + socket.getInetAddress());
@@ -33,6 +34,6 @@ public class SessionManager {
     }
 
     private void initSession(Socket socket) throws IOException {
-        executor.submit(new Session(socket, usersManager));
+        executor.submit(new Session(socket, usersManager, executor));
     }
 }

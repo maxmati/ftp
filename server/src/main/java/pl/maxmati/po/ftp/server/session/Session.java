@@ -5,6 +5,8 @@ import pl.maxmati.po.ftp.server.network.CommandConnection;
 import pl.maxmati.po.ftp.server.network.PassiveConnection;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.nio.file.Path;
@@ -36,6 +38,8 @@ public class Session implements Runnable{
         this.manager = usersManager;
         this.commandConnection = new CommandConnection(socket);
         watchdog = new Watchdog(60 * 1000, this::quit);
+
+        commandConnection.sendResponse(new Response(Response.Type.HELLO));
     }
 
     @Override
@@ -112,13 +116,65 @@ public class Session implements Runnable{
             case DELE:
                 remove(command.getParam(0), false);
                 break;
+            case RETR:
+                sendFile(command.getParam(0));
+                break;
+            case STOR:
+                receiveFile(command.getParam(0), true);
+                break;
+            case APPE:
+                receiveFile(command.getParam(0), false);
+                break;
+            default:
+                commandConnection.sendResponse(new Response(Response.Type.NOT_IMPLEMENTED));
         }
     }
 
-    private void remove(String pathName, boolean directory) {
+    private void receiveFile(String filename, boolean override) {
+        if(passiveConnection == null){
+            commandConnection.sendResponse(new Response(Response.Type.BAD_SEQUENCE_OF_COMMANDS));
+            return;
+        }
+
+        Path path = resolveIfRelative(filename);
+
+        OutputStream stream = filesystem.storeFile(path, override);
+
+        if(stream == null){
+            commandConnection.sendResponse(new Response(Response.Type.NO_SUCH_FILE_OR_DIR, filename));
+        } else {
+            passiveConnection.receiveData(stream);
+            commandConnection.sendResponse(new Response(Response.Type.OPENING_PASSIVE_CONNECTION, "binary", filename));
+        }
+
+    }
+
+    private void sendFile(String filename) {
+        if(passiveConnection == null){
+            commandConnection.sendResponse(new Response(Response.Type.BAD_SEQUENCE_OF_COMMANDS));
+            return;
+        }
+
+        Path path = resolveIfRelative(filename);
+
+        InputStream stream = filesystem.getFile(path);
+        if(stream == null){
+            commandConnection.sendResponse(new Response(Response.Type.NO_SUCH_FILE_OR_DIR));
+        } else {
+            passiveConnection.sendData(stream);
+            commandConnection.sendResponse(new Response(Response.Type.OPENING_PASSIVE_CONNECTION, "binary", filename));
+        }
+    }
+
+    private Path resolveIfRelative(String pathName) {
         Path path = Paths.get(pathName);
         if(!path.isAbsolute())
-            path = cwd.resolve(pathName);
+            path = cwd.resolve(path);
+        return path;
+    }
+
+    private void remove(String pathName, boolean directory) {
+        Path path = resolveIfRelative(pathName);
 
         if(filesystem.remove(path, directory))
             commandConnection.sendResponse(new Response(Response.Type.REQUEST_COMPLETED, "RMD"));

@@ -37,12 +37,13 @@ public class Command {
     }
 
     public boolean hasValidNumberOfArgs() {
-        return type.getNumberOfArgs() == params.length;
+        return type.getNumberOfArgs() == params.length || type == Type.NONE;
     }
 
     public enum Type {
         USER(1), PASS(1), QUIT(0), NOOP(0), PASV(0),
-        NLST(0), PWD(0), CWD(1), MKD(1), RMD(1), DELE(1);
+        NLST(0), PWD(0), CWD(1), MKD(1), RMD(1), DELE(1),
+        RETR(1), STOR(1), APPE(1), NONE(0);
 
         private final int numberOfArgs;
 

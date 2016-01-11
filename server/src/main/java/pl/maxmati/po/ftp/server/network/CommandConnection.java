@@ -34,7 +34,13 @@ public class CommandConnection {
 
         String[] tokens = line.split(" ");
 
-        final Command.Type type = Command.Type.valueOf(tokens[0]);
+        Command.Type type;
+        try {
+            type = Command.Type.valueOf(tokens[0]);
+        } catch (IllegalArgumentException e){
+            System.out.println("Unknown command " + tokens[0]);
+            type = Command.Type.NONE;
+        }
         final String[] params = Arrays.copyOfRange(tokens, 1, tokens.length);
         Command command = new Command(type, params);
 

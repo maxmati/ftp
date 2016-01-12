@@ -9,6 +9,8 @@ import pl.maxmati.po.ftp.server.session.Session;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Created by maxmati on 1/12/16
@@ -16,6 +18,8 @@ import java.nio.file.Paths;
 public class CommandProcessor {
     private final Session session;
     private final Filesystem filesystem;
+    private static final List<Command.Type> WITHOUT_AUTH_COMMAND_TYPES =
+            Arrays.asList(Command.Type.USER, Command.Type.PASS);
 
     public CommandProcessor(Session session, Filesystem filesystem) {
         this.session = session;
@@ -26,6 +30,11 @@ public class CommandProcessor {
         if(!command.hasValidNumberOfArgs()) {
             System.out.println("Syntax error in command: " + command + ". Invalid number of args");
             session.sendResponse(Response.Type.SYNTAX_ERROR);
+            return;
+        }
+
+        if( !session.isAuthenticated() && !WITHOUT_AUTH_COMMAND_TYPES.contains(command.getType()) ){
+            session.sendResponse(Response.Type.BAD_SEQUENCE_OF_COMMANDS);
             return;
         }
 
@@ -73,9 +82,8 @@ public class CommandProcessor {
                 receiveFile(command.getParam(0), true, session);
                 break;
             case NONE:
-                break;
-            default:
                 session.sendResponse(Response.Type.NOT_IMPLEMENTED);
+                break;
         }
     }
 

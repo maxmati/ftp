@@ -131,4 +131,8 @@ public class Session implements Runnable{
     public PassiveConnection getPassiveConnection() {
         return passiveConnection;
     }
+
+    public boolean isAuthenticated() {
+        return authenticated;
+    }
 }

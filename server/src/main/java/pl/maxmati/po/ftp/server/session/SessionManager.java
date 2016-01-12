@@ -1,10 +1,14 @@
 package pl.maxmati.po.ftp.server.session;
 
+import pl.maxmati.po.ftp.server.LocalFilesystem;
+import pl.maxmati.po.ftp.server.PermissionManager;
 import pl.maxmati.po.ftp.server.UsersManager;
+import pl.maxmati.po.ftp.server.database.dao.FilesDAO;
 
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.file.Paths;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -15,9 +19,11 @@ public class SessionManager {
     private static final int COMMAND_PORT = 1221;
     private final ExecutorService executor = Executors.newCachedThreadPool();
     private final UsersManager usersManager;
+    private final FilesDAO filesDAO;
 
-    public SessionManager(UsersManager usersManager) {
+    public SessionManager(UsersManager usersManager, FilesDAO filesDAO) {
         this.usersManager = usersManager;
+        this.filesDAO = filesDAO;
     }
 
     public void start(){
@@ -34,6 +40,18 @@ public class SessionManager {
     }
 
     private void initSession(Socket socket) throws IOException {
-        executor.submit(new Session(socket, usersManager, executor));
+        PermissionManager permissionManager = new PermissionManager(filesDAO);
+        executor.submit(
+                new Session(
+                        socket,
+                        usersManager,
+                        executor,
+                        new LocalFilesystem(
+                                permissionManager,
+                                Paths.get("/home/maxmati/tmp")
+                        ),
+                        permissionManager
+                )
+        );
     }
 }

@@ -1,16 +1,25 @@
 package pl.maxmati.po.ftp.server.command;
 
+import pl.maxmati.po.ftp.server.Filesystem;
 import pl.maxmati.po.ftp.server.Response;
+import pl.maxmati.po.ftp.server.exceptions.FilesystemException;
+import pl.maxmati.po.ftp.server.exceptions.PermissionDeniedException;
 import pl.maxmati.po.ftp.server.session.Session;
+
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Paths;
 
 /**
  * Created by maxmati on 1/12/16
  */
 public class CommandProcessor {
     private final Session session;
+    private final Filesystem filesystem;
 
-    public CommandProcessor(Session session) {
+    public CommandProcessor(Session session, Filesystem filesystem) {
         this.session = session;
+        this.filesystem = filesystem;
     }
 
     public void processCommand(Command command) {
@@ -37,36 +46,105 @@ public class CommandProcessor {
                 session.listenForPassiveConnection();
                 break;
             case NLST:
-                session.machineList();
+                machineList(session);
                 break;
             case PWD:
-                session.sendWorkingDirectory();
+                sendWorkingDirectory(session);
                 break;
             case CWD:
-                session.changeDirectory(command.getParam(0));
+                changeDirectory(command.getParam(0), session);
                 break;
             case MKD:
-                session.createDirectory(command.getParam(0));
+                createDirectory(command.getParam(0), session);
                 break;
             case RMD:
-                session.remove(command.getParam(0), true);
+                remove(command.getParam(0), true, session);
                 break;
             case DELE:
-                session.remove(command.getParam(0), false);
+                remove(command.getParam(0), false, session);
                 break;
             case RETR:
-                session.sendFile(command.getParam(0));
+                sendFile(command.getParam(0), session);
                 break;
             case STOR:
-                session.receiveFile(command.getParam(0), false);
+                receiveFile(command.getParam(0), false, session);
                 break;
             case APPE:
-                session.receiveFile(command.getParam(0), true);
+                receiveFile(command.getParam(0), true, session);
                 break;
             case NONE:
                 break;
             default:
                 session.sendResponse(Response.Type.NOT_IMPLEMENTED);
         }
+    }
+
+    private void machineList(Session session) {
+        if (!session.havePassiveConnection()) return;
+
+        try {
+            session.getPassiveConnection().sendData(filesystem.listFiles(Paths.get("")));
+            session.sendResponse(Response.Type.OPENING_PASSIVE_CONNECTION, "ASCII", "/bin/ls");
+        } catch (PermissionDeniedException e) {
+            session.sendResponse(Response.Type.PERMISSION_DENIED);
+        }
+
+    }
+
+    private void sendWorkingDirectory(Session session) {
+        session.sendResponse(Response.Type.CURRENT_DIRECTORY, filesystem.getCWD().toString());
+    }
+
+    private void changeDirectory(String path, Session session) {
+        try{
+            filesystem.changeDirectory(Paths.get(path));
+            session.sendResponse(Response.Type.REQUEST_COMPLETED, "CWD");
+        } catch( FilesystemException e){
+            session.sendResponse(e.getResponse());
+        }
+    }
+
+    private void createDirectory(String directory, Session session) {
+        try {
+            filesystem.createDir(Paths.get(directory));
+            session.sendResponse(Response.Type.CREATED_DIRECTORY, directory);
+        } catch (FilesystemException e){
+            session.sendResponse(e.getResponse());
+        }
+    }
+
+    private void remove(String filename, boolean directory, Session session) {
+        try {
+            filesystem.remove(Paths.get(filename), directory);
+            session.sendResponse(Response.Type.REQUEST_COMPLETED, "RMD");
+        } catch (FilesystemException e){
+            session.sendResponse(e.getResponse());
+        }
+
+    }
+
+    private void sendFile(String filename, Session session) {
+        if (!session.havePassiveConnection()) return;
+
+        try {
+            InputStream stream = filesystem.getFile(Paths.get(filename));
+            session.getPassiveConnection().sendData(stream);
+            session.sendResponse(Response.Type.OPENING_PASSIVE_CONNECTION, "binary", filename);
+        } catch (FilesystemException e){
+            session.sendResponse(e.getResponse());
+        }
+    }
+
+    private void receiveFile(String filename, boolean override, Session session) {
+        if (!session.havePassiveConnection()) return;
+
+        try {
+            OutputStream stream = filesystem.storeFile(Paths.get(filename), override);
+            session.getPassiveConnection().receiveData(stream);
+            session.sendResponse(Response.Type.OPENING_PASSIVE_CONNECTION, "binary", filename);
+        } catch (FilesystemException e){
+            session.sendResponse(e.getResponse());
+        }
+
     }
 }

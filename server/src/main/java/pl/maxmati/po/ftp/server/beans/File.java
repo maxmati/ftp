@@ -1,4 +1,7 @@
-package pl.maxmati.po.ftp.server.database;
+package pl.maxmati.po.ftp.server.beans;
+
+import pl.maxmati.ftp.common.beans.Group;
+import pl.maxmati.ftp.common.beans.User;
 
 import java.util.Objects;
 

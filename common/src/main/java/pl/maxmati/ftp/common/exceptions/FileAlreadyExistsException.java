@@ -1,6 +1,6 @@
-package pl.maxmati.po.ftp.server.exceptions;
+package pl.maxmati.ftp.common.exceptions;
 
-import pl.maxmati.po.ftp.server.Response;
+import pl.maxmati.ftp.common.Response;
 
 /**
  * Created by maxmati on 1/12/16

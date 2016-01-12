@@ -1,9 +1,9 @@
 package pl.maxmati.po.ftp.server.database.dao;
 
+import pl.maxmati.ftp.common.beans.Group;
+import pl.maxmati.ftp.common.beans.User;
+import pl.maxmati.po.ftp.server.beans.File;
 import pl.maxmati.po.ftp.server.database.ConnectionPool;
-import pl.maxmati.po.ftp.server.database.File;
-import pl.maxmati.po.ftp.server.database.Group;
-import pl.maxmati.po.ftp.server.database.User;
 import pl.maxmati.po.ftp.server.exceptions.DatabaseException;
 
 import java.sql.Connection;

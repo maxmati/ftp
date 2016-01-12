@@ -1,7 +1,7 @@
 package pl.maxmati.po.ftp.server.session;
 
-import pl.maxmati.po.ftp.server.LocalFilesystem;
-import pl.maxmati.po.ftp.server.PermissionManager;
+import pl.maxmati.ftp.common.filesystem.LocalFilesystem;
+import pl.maxmati.po.ftp.server.DatabasePermissionManager;
 import pl.maxmati.po.ftp.server.UsersManager;
 import pl.maxmati.po.ftp.server.database.dao.FilesDAO;
 
@@ -40,7 +40,7 @@ public class SessionManager {
     }
 
     private void initSession(Socket socket) throws IOException {
-        PermissionManager permissionManager = new PermissionManager(filesDAO);
+        DatabasePermissionManager permissionManager = new DatabasePermissionManager(filesDAO);
         executor.submit(
                 new Session(
                         socket,

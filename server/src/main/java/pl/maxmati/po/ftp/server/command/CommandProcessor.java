@@ -1,9 +1,9 @@
 package pl.maxmati.po.ftp.server.command;
 
-import pl.maxmati.po.ftp.server.Filesystem;
-import pl.maxmati.po.ftp.server.Response;
-import pl.maxmati.po.ftp.server.exceptions.FilesystemException;
-import pl.maxmati.po.ftp.server.exceptions.PermissionDeniedException;
+import pl.maxmati.ftp.common.Response;
+import pl.maxmati.ftp.common.exceptions.FilesystemException;
+import pl.maxmati.ftp.common.exceptions.PermissionDeniedException;
+import pl.maxmati.ftp.common.filesystem.Filesystem;
 import pl.maxmati.po.ftp.server.session.Session;
 
 import java.io.InputStream;

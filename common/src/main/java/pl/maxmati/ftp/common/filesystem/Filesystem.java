@@ -1,4 +1,4 @@
-package pl.maxmati.po.ftp.server;
+package pl.maxmati.ftp.common.filesystem;
 
 import java.io.InputStream;
 import java.io.OutputStream;

@@ -1,6 +1,7 @@
-package pl.maxmati.po.ftp.server;
+package pl.maxmati.ftp.common.filesystem;
 
-import pl.maxmati.po.ftp.server.exceptions.*;
+import pl.maxmati.ftp.common.PermissionManager;
+import pl.maxmati.ftp.common.exceptions.*;
 
 import java.io.IOException;
 import java.io.InputStream;

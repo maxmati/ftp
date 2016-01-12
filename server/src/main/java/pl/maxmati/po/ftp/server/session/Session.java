@@ -1,9 +1,13 @@
 package pl.maxmati.po.ftp.server.session;
 
-import pl.maxmati.po.ftp.server.*;
+import pl.maxmati.ftp.common.Response;
+import pl.maxmati.ftp.common.beans.User;
+import pl.maxmati.ftp.common.filesystem.Filesystem;
+import pl.maxmati.po.ftp.server.DatabasePermissionManager;
+import pl.maxmati.po.ftp.server.UsersManager;
+import pl.maxmati.po.ftp.server.Watchdog;
 import pl.maxmati.po.ftp.server.command.Command;
 import pl.maxmati.po.ftp.server.command.CommandProcessor;
-import pl.maxmati.po.ftp.server.database.User;
 import pl.maxmati.po.ftp.server.network.CommandConnection;
 import pl.maxmati.po.ftp.server.network.PassiveConnection;
 
@@ -22,7 +26,7 @@ public class Session implements Runnable{
     private final ExecutorService executor;
     private final Watchdog watchdog;
     private final CommandProcessor processor;
-    private final PermissionManager permissionManager;
+    private final DatabasePermissionManager permissionManager;
 
     private final AtomicBoolean running = new AtomicBoolean(true);
 
@@ -32,7 +36,7 @@ public class Session implements Runnable{
     private final InetAddress address;
 
     public Session(Socket socket, UsersManager usersManager, ExecutorService executor,
-                   Filesystem filesystem, PermissionManager permissionManager) throws IOException {
+                   Filesystem filesystem, DatabasePermissionManager permissionManager) throws IOException {
         this.executor = executor;
         this.address = socket.getInetAddress();
         this.manager = usersManager;

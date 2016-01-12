@@ -1,6 +1,6 @@
-package pl.maxmati.po.ftp.server.exceptions;
+package pl.maxmati.ftp.common.exceptions;
 
-import pl.maxmati.po.ftp.server.Response;
+import pl.maxmati.ftp.common.Response;
 
 import java.io.IOException;
 
@@ -10,7 +10,7 @@ import java.io.IOException;
 public class FilesystemException extends RuntimeException {
     private final Response response;
 
-    public FilesystemException(Response response) {
+    FilesystemException(Response response) {
         this.response = response;
     }
 

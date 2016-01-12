@@ -1,6 +1,6 @@
 package pl.maxmati.po.ftp.server.network;
 
-import pl.maxmati.po.ftp.server.Response;
+import pl.maxmati.ftp.common.Response;
 import pl.maxmati.po.ftp.server.command.Command;
 
 import java.io.IOException;

@@ -15,25 +15,29 @@ import java.util.stream.Collectors;
  */
 public class LocalFilesystem implements Filesystem {
     private final PermissionManager permissionManager;
+    private Path cwd;
 
-    public LocalFilesystem() {
+    public LocalFilesystem(Path cwd) {
         this.permissionManager = null;
+        this.cwd = cwd;
     }
 
-    public LocalFilesystem(PermissionManager permissionManager) {
+    public LocalFilesystem(PermissionManager permissionManager, Path cwd) {
         this.permissionManager = permissionManager;
-
+        this.cwd = cwd;
     }
 
     @Override
-    public String listFiles(Path directory){
-        System.out.println("Listing files in directory " + directory);
+    public String listFiles(Path path){
+        path = resolveIfRelative(path);
 
-        if(permissionManager != null && !permissionManager.haveReadPermission(directory))
+        System.out.println("Listing files in directory " + path);
+
+        if(permissionManager != null && !permissionManager.haveReadPermission(path))
             throw new PermissionDeniedException();
 
         try {
-            return Files.list(directory)
+            return Files.list(path)
                     .filter(this::isFileVisible)
                     .map(Path::getFileName)
                     .map(Path::toString)
@@ -44,12 +48,16 @@ public class LocalFilesystem implements Filesystem {
     }
 
     @Override
-    public boolean isValidDirectory(Path path) {
+    public boolean isDirectory(Path path) {
+        path = resolveIfRelative(path);
+
         return Files.isDirectory(path);
     }
 
     @Override
     public void createDir(Path path) {
+        path = resolveIfRelative(path);
+
         if(!parentIsDirectory(path))
             throw new NoSuchFileException(path.toString());
 
@@ -73,6 +81,8 @@ public class LocalFilesystem implements Filesystem {
 
     @Override
     public void remove(Path path, boolean directory) {
+        path = resolveIfRelative(path);
+
         if(permissionManager != null && !permissionManager.haveWritePermission(path.getParent()))
             throw new PermissionDeniedException();
 
@@ -102,6 +112,8 @@ public class LocalFilesystem implements Filesystem {
 
     @Override
     public InputStream getFile(Path path) {
+        path = resolveIfRelative(path);
+
         try {
             if(!Files.isReadable(path))
                 throw new PermissionDeniedException();
@@ -120,6 +132,8 @@ public class LocalFilesystem implements Filesystem {
 
     @Override
     public OutputStream storeFile(Path path, boolean append) {
+        path = resolveIfRelative(path);
+
         try {
             boolean shouldAddFilesEntry = false;
 
@@ -160,6 +174,28 @@ public class LocalFilesystem implements Filesystem {
         } catch (IOException e) {
             throw new FilesystemException(e);
         }
+    }
+
+    @Override
+    public void changeDirectory(Path path) {
+        path = resolveIfRelative(path);
+        if(isDirectory(path)){
+            System.out.println("Changing working directory to: " + path);
+            cwd = path;
+        } else {
+            throw new NoSuchFileException(path.toString());
+        }
+    }
+
+    @Override
+    public Path getCWD() {
+        return cwd;
+    }
+
+    private Path resolveIfRelative(Path path) {
+        if(!path.isAbsolute())
+            path = cwd.resolve(path);
+        return path;
     }
 
     private boolean parentIsDirectory(Path path) {

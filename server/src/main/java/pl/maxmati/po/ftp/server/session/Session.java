@@ -18,7 +18,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -32,14 +31,13 @@ public class Session implements Runnable{
     private final ExecutorService executor;
     private final Watchdog watchdog;
     private final PermissionManager permissionManager = new PermissionManager(new FilesDAO(ConnectionPool.getInstance(), new UsersDAO(ConnectionPool.getInstance()), new GroupsDAO(ConnectionPool.getInstance())));
-    private final Filesystem filesystem = new LocalFilesystem(permissionManager);
+    private final Filesystem filesystem = new LocalFilesystem(permissionManager, Paths.get("/home/maxmati/tmp"));
     private final CommandProcessor processor = new CommandProcessor(this);
     private final AtomicBoolean running = new AtomicBoolean(true);
 
     private User user = null;
     private boolean authenticated = false;
     private PassiveConnection passiveConnection = null;
-    private Path cwd = Paths.get("/home/maxmati/tmp");
     private final InetAddress address;
 
     public Session(Socket socket, UsersManager usersManager, ExecutorService executor) throws IOException {
@@ -90,10 +88,8 @@ public class Session implements Runnable{
     public void receiveFile(String filename, boolean override) {
         if (!havePassiveConnection()) return;
 
-        Path path = resolveIfRelative(filename);
-
         try {
-            OutputStream stream = filesystem.storeFile(path, override);
+            OutputStream stream = filesystem.storeFile(Paths.get(filename), override);
             passiveConnection.receiveData(stream);
             sendResponse(Response.Type.OPENING_PASSIVE_CONNECTION, "binary", filename);
         } catch (FilesystemException e){
@@ -107,10 +103,8 @@ public class Session implements Runnable{
     public void sendFile(String filename) {
         if (!havePassiveConnection()) return;
 
-        Path path = resolveIfRelative(filename);
-
         try {
-            InputStream stream = filesystem.getFile(path);
+            InputStream stream = filesystem.getFile(Paths.get(filename));
             passiveConnection.sendData(stream);
             sendResponse(Response.Type.OPENING_PASSIVE_CONNECTION, "binary", filename);
         } catch (FilesystemException e){
@@ -119,10 +113,8 @@ public class Session implements Runnable{
     }
 
     public void remove(String filename, boolean directory) {
-        Path path = resolveIfRelative(filename);
-
         try {
-            filesystem.remove(path, directory);
+            filesystem.remove(Paths.get(filename), directory);
             sendResponse(Response.Type.REQUEST_COMPLETED, "RMD");
         } catch (FilesystemException e){
             sendResponse(e.getResponse());
@@ -131,36 +123,28 @@ public class Session implements Runnable{
     }
 
     public void createDirectory(String directory) {
-        Path path = Paths.get(directory);
-        if(!path.isAbsolute())
-            path = cwd.resolve(directory);
-
         try {
-            filesystem.createDir(path);
+            filesystem.createDir(Paths.get(directory));
             sendResponse(Response.Type.CREATED_DIRECTORY, directory);
         } catch (FilesystemException e){
             sendResponse(e.getResponse());
         }
-
     }
 
     public void changeDirectory(String path) {
-        Path relPath = Paths.get(path);
-        Path newPath = cwd.resolve(relPath).normalize();
-        if(filesystem.isValidDirectory(newPath)){
-            System.out.println("Changing working directory to: " + newPath);
-            cwd = newPath;
+        try{
+            filesystem.changeDirectory(Paths.get(path));
             sendResponse(Response.Type.REQUEST_COMPLETED, "CWD");
-        } else {
-            sendResponse(Response.Type.NO_SUCH_FILE_OR_DIR, path);
+        } catch( FilesystemException e){
+            sendResponse(e.getResponse());
         }
     }
 
     public void machineList() {
-        if (havePassiveConnection()) return;
+        if (!havePassiveConnection()) return;
 
         try {
-            passiveConnection.sendData(filesystem.listFiles(cwd));
+            passiveConnection.sendData(filesystem.listFiles(Paths.get("")));
             sendResponse(Response.Type.OPENING_PASSIVE_CONNECTION, "ASCII", "/bin/ls");
         } catch (PermissionDeniedException e) {
             sendResponse(Response.Type.PERMISSION_DENIED);
@@ -210,18 +194,11 @@ public class Session implements Runnable{
     }
 
     public void sendWorkingDirectory() {
-        sendResponse(Response.Type.CURRENT_DIRECTORY, cwd.toString());
+        sendResponse(Response.Type.CURRENT_DIRECTORY, filesystem.getCWD().toString());
     }
 
     private void sendResponse(Response response) {
         commandConnection.sendResponse(response);
-    }
-
-    private Path resolveIfRelative(String pathName) {
-        Path path = Paths.get(pathName);
-        if(!path.isAbsolute())
-            path = cwd.resolve(path);
-        return path;
     }
 
     private boolean havePassiveConnection() {

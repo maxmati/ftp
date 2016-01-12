@@ -10,7 +10,7 @@ import java.nio.file.Path;
 public interface Filesystem {
     String listFiles(Path directory);
 
-    boolean isValidDirectory(Path path);
+    boolean isDirectory(Path path);
 
     void createDir(Path path);
 
@@ -19,4 +19,8 @@ public interface Filesystem {
     InputStream getFile(Path path);
 
     OutputStream storeFile(Path path, boolean override);
+
+    void changeDirectory(Path path);
+
+    Path getCWD();
 }

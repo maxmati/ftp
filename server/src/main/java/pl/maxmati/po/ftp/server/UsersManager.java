@@ -1,5 +1,6 @@
 package pl.maxmati.po.ftp.server;
 
+import pl.maxmati.po.ftp.server.database.User;
 import pl.maxmati.po.ftp.server.database.dao.UsersDAO;
 
 import javax.crypto.SecretKeyFactory;

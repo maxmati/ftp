@@ -1,8 +1,8 @@
 package pl.maxmati.po.ftp.server.database.dao;
 
-import pl.maxmati.po.ftp.server.Group;
-import pl.maxmati.po.ftp.server.User;
 import pl.maxmati.po.ftp.server.database.ConnectionPool;
+import pl.maxmati.po.ftp.server.database.Group;
+import pl.maxmati.po.ftp.server.database.User;
 import pl.maxmati.po.ftp.server.exceptions.DatabaseException;
 
 import java.sql.*;
@@ -13,7 +13,7 @@ import java.util.List;
  * Created by maxmati on 1/7/16
  */
 public class GroupsDAO {
-    private static final String SELECT_FROM_GROUPS_WHERE_ID = "SELECT * FROM users WHERE id = ?";
+    private static final String SELECT_FROM_GROUPS_WHERE_ID = "SELECT * FROM groups WHERE id = ?";
     private static final String FETCH_GROUP_MEMBERS_QUERY =
             "SELECT U.* " +
             "FROM user_group UG " +

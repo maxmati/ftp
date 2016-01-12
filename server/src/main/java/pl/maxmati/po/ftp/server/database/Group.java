@@ -1,4 +1,4 @@
-package pl.maxmati.po.ftp.server;
+package pl.maxmati.po.ftp.server.database;
 
 import java.util.LinkedList;
 import java.util.List;

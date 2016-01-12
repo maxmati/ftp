@@ -1,7 +1,7 @@
 package pl.maxmati.po.ftp.server.database.dao;
 
-import pl.maxmati.po.ftp.server.User;
 import pl.maxmati.po.ftp.server.database.ConnectionPool;
+import pl.maxmati.po.ftp.server.database.User;
 import pl.maxmati.po.ftp.server.exceptions.DatabaseException;
 
 import java.sql.*;
@@ -128,6 +128,26 @@ public class UsersDAO {
             } else {
                 throw new DatabaseException("Failed to create user: " + user);
             }
+
+        } catch (SQLException e) {
+            throw new DatabaseException(e);
+        } finally {
+            connectionPool.releaseConnection(con);
+        }
+    }
+
+    public int getUserGroupId(User user) {
+        Connection con = null;
+        try {
+            con = connectionPool.reserveConnection();
+            PreparedStatement ps = con.prepareStatement("SELECT group_id FROM user_group WHERE user_id = ?");
+            ps.setInt(1, user.getId());
+            ResultSet rs = ps.executeQuery();
+
+            if(rs.next()){
+                return rs.getInt("group_id");
+            } else
+                throw new DatabaseException("Failed to get group id of user: " + user);
 
         } catch (SQLException e) {
             throw new DatabaseException(e);

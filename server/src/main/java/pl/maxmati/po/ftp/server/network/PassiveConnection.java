@@ -54,9 +54,8 @@ public class PassiveConnection{
 
             try(InputStream in = socket.getInputStream()) {
                 pipeStream(in, out);
-                in.close();
+                out.close();
                 session.dataSent(true);
-
             } catch (Exception e) {
                 session.dataSent(false);
                 e.printStackTrace();
@@ -73,7 +72,6 @@ public class PassiveConnection{
                 pipeStream(in, out);
                 in.close();
                 session.dataSent(true);
-
             } catch (Exception e) {
                 session.dataSent(false);
                 e.printStackTrace();

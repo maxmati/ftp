@@ -91,7 +91,7 @@ public class CommandProcessor {
         if (!session.havePassiveConnection()) return;
 
         try {
-            session.getPassiveConnection().sendData(filesystem.listFiles(Paths.get("")));
+            session.getPassiveConnection().sendData(filesystem.listFilesName(Paths.get("")));
             session.sendResponse(Response.Type.OPENING_PASSIVE_CONNECTION, "ASCII", "/bin/ls");
         } catch (PermissionDeniedException e) {
             session.sendResponse(Response.Type.PERMISSION_DENIED);

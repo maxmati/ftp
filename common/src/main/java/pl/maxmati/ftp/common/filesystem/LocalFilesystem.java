@@ -9,6 +9,7 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -29,7 +30,15 @@ public class LocalFilesystem implements Filesystem {
     }
 
     @Override
-    public String listFiles(Path path){
+    public String listFilesName(Path path){
+        return listFiles(path).stream()
+                .map(Path::getFileName)
+                .map(Path::toString)
+                .collect(Collectors.joining("\n", "", "\n"));
+    }
+
+    @Override
+    public List<Path> listFiles(Path path){
         path = resolveIfRelative(path);
 
         System.out.println("Listing files in directory " + path);
@@ -40,9 +49,7 @@ public class LocalFilesystem implements Filesystem {
         try {
             return Files.list(path)
                     .filter(this::isFileVisible)
-                    .map(Path::getFileName)
-                    .map(Path::toString)
-                    .collect(Collectors.joining("\n", "", "\n"));
+                    .collect(Collectors.toList());
         } catch (IOException e) {
             throw new FilesystemException(e);
         }

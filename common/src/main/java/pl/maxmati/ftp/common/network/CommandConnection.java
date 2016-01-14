@@ -1,7 +1,7 @@
-package pl.maxmati.po.ftp.server.network;
+package pl.maxmati.ftp.common.network;
 
 import pl.maxmati.ftp.common.Response;
-import pl.maxmati.po.ftp.server.command.Command;
+import pl.maxmati.ftp.common.command.Command;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -46,6 +46,22 @@ public class CommandConnection {
 
         System.out.println("Received new command: " + command);
         return command;
+    }
+
+    public Response fetchResponse() {
+        String line;
+        try {
+            line = scanner.nextLine();
+        } catch (NoSuchElementException e){
+            return null;
+        }
+
+        String[] tokens = line.split(" ", 2);
+
+        final Response response = new Response(Integer.valueOf(tokens[0]), tokens[1]);
+
+        System.out.println("Received response: " + response);
+        return response;
     }
 
     public void sendResponse(Response response) {

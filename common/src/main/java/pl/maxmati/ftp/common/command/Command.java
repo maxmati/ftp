@@ -1,4 +1,4 @@
-package pl.maxmati.po.ftp.server.command;
+package pl.maxmati.ftp.common.command;
 
 import java.util.Arrays;
 

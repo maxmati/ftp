@@ -1,4 +1,4 @@
-package pl.maxmati.po.ftp.client;
+package pl.maxmati.po.ftp.client.widgets.filesystemTree;
 
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;

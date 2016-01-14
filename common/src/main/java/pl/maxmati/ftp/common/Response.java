@@ -1,6 +1,8 @@
 package pl.maxmati.ftp.common;
 
 import java.util.Arrays;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 /**
@@ -14,6 +16,11 @@ public class Response {
     public Response(Type type, Object... params) {
         this.type = type;
         this.params = params;
+    }
+
+    public Response(int code, String msg){
+        type = Type.fromCodeAndMsg(code, msg);
+        params = type.parseParams(msg);
     }
 
     public String toNetworkString(){
@@ -76,6 +83,31 @@ public class Response {
 
         public int getNoParams() {
             return noParams;
+        }
+
+        public Object[] parseParams(String msg) {
+            Matcher matcher = Type.formatToRegex(format).matcher(msg);
+            Object[] result = new Object[matcher.groupCount()];
+            for (int i = 0; i < result.length; i++) {
+                result[i] = matcher.group(i);
+            }
+            return result;
+        }
+
+        public static Type fromCodeAndMsg(int code, String msg){
+            return Arrays.asList(Type.values())
+                    .parallelStream()
+                    .filter(type -> type.getCode() == code)
+                    .filter(type -> formatToRegex(type.getFormat()).matcher(msg).matches())
+                    .findFirst()
+                    .get();
+        }
+
+
+        public static Pattern formatToRegex(String format){
+            return Pattern.compile(
+                    "^" + format.replaceAll("%s", "([\\w/\\\\]+)").replaceAll("%d", "([0-9]+)") + "$"
+            );
         }
     }
 }

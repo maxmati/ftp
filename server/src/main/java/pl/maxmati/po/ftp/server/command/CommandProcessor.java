@@ -1,6 +1,7 @@
 package pl.maxmati.po.ftp.server.command;
 
 import pl.maxmati.ftp.common.Response;
+import pl.maxmati.ftp.common.command.Command;
 import pl.maxmati.ftp.common.exceptions.FilesystemException;
 import pl.maxmati.ftp.common.exceptions.PermissionDeniedException;
 import pl.maxmati.ftp.common.filesystem.Filesystem;

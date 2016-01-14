@@ -1,4 +1,4 @@
-package pl.maxmati.po.ftp.client;
+package pl.maxmati.po.ftp.client.widgets.filesystemTree;
 
 import java.nio.file.Path;
 

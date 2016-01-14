@@ -1,6 +1,7 @@
 package pl.maxmati.po.ftp.client;
 
 import pl.maxmati.ftp.common.Response;
+import pl.maxmati.ftp.common.command.Command;
 import pl.maxmati.ftp.common.network.CommandConnection;
 
 import java.io.IOException;
@@ -16,6 +17,8 @@ public class ClientSession implements Runnable{
 
     private CommandConnection connection = null;
 
+    private boolean running = false;
+
     public ClientSession(ExecutorService executor) {
         this.executor = executor;
     }
@@ -25,6 +28,7 @@ public class ClientSession implements Runnable{
         try {
             socket.connect(new InetSocketAddress(hostname, port));
             connection = new CommandConnection(socket);
+            running = true;
             executor.submit(this);
 
         } catch (IOException e) {
@@ -32,9 +36,15 @@ public class ClientSession implements Runnable{
         }
     }
 
+    public void disconnect() {
+        connection.sendCommand(new Command(Command.Type.QUIT));
+        running = false;
+        connection.close();
+    }
+
     @Override
     public void run() {
-        while (true){
+        while (running){
             Response response = connection.fetchResponse();
         }
     }

@@ -28,6 +28,7 @@ public class MainController implements Initializable {
     @FXML private Button connectButton;
     @FXML private TreeView<FileEntry> localTree;
 
+    private boolean connected = false;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -56,8 +57,18 @@ public class MainController implements Initializable {
             case CONNECTED:
                 connectButton.setDisable(false);
                 connectButton.setText("Disconnect");
-                serverAddress.setDisable(true);
-                serverPort.setDisable(true);
+                connected = true;
+                break;
+            case REQUEST_DISCONNECT:
+                connectButton.setDisable(true);
+                connectButton.setText("Disconnecting");
+                break;
+            case DISCONNECTED:
+                connectButton.setDisable(false);
+                connectButton.setText("Connect");
+                serverAddress.setDisable(false);
+                serverPort.setDisable(false);
+                connected = false;
                 break;
         }
     }
@@ -66,7 +77,10 @@ public class MainController implements Initializable {
         final String hostname = serverAddress.getText();
         final Integer port = Integer.valueOf(serverPort.getText());
 
-        dispatcher.dispatch(new ConnectEvent(ConnectEvent.Type.REQUEST_CONNECTION, hostname, port));
+        if(!connected)
+            dispatcher.dispatch(new ConnectEvent(ConnectEvent.Type.REQUEST_CONNECTION, hostname, port));
+        else
+            dispatcher.dispatch(new ConnectEvent(ConnectEvent.Type.REQUEST_DISCONNECT));
     }
 
 }

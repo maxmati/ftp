@@ -40,6 +40,10 @@ public class Command {
         return type.getNumberOfArgs() == params.length || type == Type.NONE;
     }
 
+    public String toNetworkString() {
+        return type.toString() + (params.length > 0 ? " " : "") + String.join(" ", params);
+    }
+
     public enum Type {
         USER(1), PASS(1), QUIT(0), NOOP(0), PASV(0),
         NLST(0), PWD(0), CWD(1), MKD(1), RMD(1), DELE(1),

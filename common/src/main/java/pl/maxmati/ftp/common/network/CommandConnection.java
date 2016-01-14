@@ -48,6 +48,12 @@ public class CommandConnection {
         return command;
     }
 
+    public void sendCommand(Command command) {
+        output.print(command.toNetworkString());
+        System.out.println("Sent command: " + command);
+
+    }
+
     public Response fetchResponse() {
         String line;
         try {

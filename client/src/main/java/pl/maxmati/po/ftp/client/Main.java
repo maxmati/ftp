@@ -1,4 +1,6 @@
-package pl.maxmati.po.ftp.client;/**
+package pl.maxmati.po.ftp.client;
+
+/**
  * Created by maxmati on 1/12/16
  */
 

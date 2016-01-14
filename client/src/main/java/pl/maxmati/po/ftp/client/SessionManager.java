@@ -31,6 +31,10 @@ public class SessionManager {
                 session.connect(hostname, port);
                 dispatcher.dispatch(new ConnectEvent(ConnectEvent.Type.CONNECTED, hostname, port));
                 break;
+            case REQUEST_DISCONNECT:
+                session.disconnect();
+                dispatcher.dispatch(new ConnectEvent(ConnectEvent.Type.DISCONNECTED));
+                break;
         }
     }
 

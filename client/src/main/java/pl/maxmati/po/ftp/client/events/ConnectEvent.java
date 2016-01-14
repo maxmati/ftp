@@ -15,6 +15,10 @@ public class ConnectEvent implements Event{
         this.port = port;
     }
 
+    public ConnectEvent(Type type) {
+        this(type, null, null);
+    }
+
     public Type getType() {
         return type;
     }
@@ -28,7 +32,7 @@ public class ConnectEvent implements Event{
     }
 
     public enum Type {
-        CONNECTED, REQUEST_CONNECTION
+        CONNECTED, REQUEST_DISCONNECT, DISCONNECTED, REQUEST_CONNECTION
     }
 
     @Override

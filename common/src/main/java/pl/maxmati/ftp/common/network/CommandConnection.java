@@ -9,6 +9,7 @@ import java.net.Socket;
 import java.util.Arrays;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
+import java.util.function.Consumer;
 
 /**
  * Created by maxmati on 1/8/16
@@ -17,6 +18,7 @@ public class CommandConnection {
     private final Socket socket;
     private final Scanner scanner;
     private final PrintStream output;
+    private Consumer<Command> listener = null;
 
     public CommandConnection(Socket socket) throws IOException {
         this.socket = socket;
@@ -51,7 +53,8 @@ public class CommandConnection {
     public void sendCommand(Command command) {
         output.print(command.toNetworkString());
         System.out.println("Sent command: " + command);
-
+        if(listener != null)
+            listener.accept(command);
     }
 
     public Response fetchResponse() {
@@ -68,6 +71,9 @@ public class CommandConnection {
 
         System.out.println("Received response: " + response);
         return response;
+    }
+    public void setOnCommandSentListener(Consumer<Command> listener){
+        this.listener = listener;
     }
 
     public void sendResponse(Response response) {

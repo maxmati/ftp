@@ -17,7 +17,7 @@ public class SessionManager {
     public SessionManager(EventDispatcher dispatcher, ExecutorService executorService) {
         this.dispatcher = dispatcher;
         this.executorService = executorService;
-        session = new ClientSession(executorService);
+        session = new ClientSession(executorService, dispatcher);
 
         dispatcher.registerListener(ConnectEvent.class, this::onConnectionEvent);
     }

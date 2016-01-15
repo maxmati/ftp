@@ -3,12 +3,11 @@ package pl.maxmati.po.ftp.client;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TreeView;
 import pl.maxmati.ftp.common.filesystem.Filesystem;
-import pl.maxmati.po.ftp.client.events.ConnectEvent;
-import pl.maxmati.po.ftp.client.events.Event;
-import pl.maxmati.po.ftp.client.events.EventDispatcher;
+import pl.maxmati.po.ftp.client.events.*;
 import pl.maxmati.po.ftp.client.widgets.filesystemTree.FileEntry;
 import pl.maxmati.po.ftp.client.widgets.filesystemTree.FilesystemTree;
 
@@ -22,6 +21,8 @@ public class MainController implements Initializable {
     private EventDispatcher dispatcher = null;
     private FilesystemTree localFsTree = new FilesystemTree();
 
+    @FXML private TextArea commandChannelHistory;
+
     @FXML private TextField serverAddress;
     @FXML private TextField serverPort;
 
@@ -32,17 +33,29 @@ public class MainController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-    }
-
-    public void setEventDispatcher(EventDispatcher dispatcher){
-        this.dispatcher = dispatcher;
-        dispatcher.registerListener(ConnectEvent.class, this::onConnectEvent);
+        commandChannelHistory.setEditable(false);
     }
 
     public void setFilesystem(Filesystem filesystem){
         localFsTree.init(filesystem, localTree);
     }
 
+    public void setEventDispatcher(EventDispatcher dispatcher){
+        this.dispatcher = dispatcher;
+        dispatcher.registerListener(ConnectEvent.class, this::onConnectEvent);
+        dispatcher.registerListener(CommandEvent.class, this::onCommandEvent);
+        dispatcher.registerListener(ResponseEvent.class, this::onResponseEvent);
+    }
+
+    private void onCommandEvent(Event event){
+        CommandEvent commandEvent = (CommandEvent) event;
+        appendToHistory("Command: " + commandEvent.getCommand().toNetworkString() + "\n");
+    }
+
+    private void onResponseEvent(Event event){
+        ResponseEvent responseEvent = (ResponseEvent) event;
+        appendToHistory("Response: " + responseEvent.getResponse().toNetworkString());
+    }
 
     private void onConnectEvent(Event event){
         ConnectEvent connectEvent = (ConnectEvent) event;
@@ -71,6 +84,11 @@ public class MainController implements Initializable {
                 connected = false;
                 break;
         }
+    }
+
+    private void appendToHistory(String data) {
+        commandChannelHistory.setText(commandChannelHistory.getText() + data);
+        commandChannelHistory.setScrollTop(Double.MAX_VALUE);
     }
 
     @FXML private void onConnectButtonClicked(){

@@ -1,11 +1,9 @@
 package pl.maxmati.po.ftp.client;
 
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.Button;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
-import javafx.scene.control.TreeView;
+import javafx.scene.control.*;
 import pl.maxmati.ftp.common.filesystem.Filesystem;
 import pl.maxmati.po.ftp.client.events.*;
 import pl.maxmati.po.ftp.client.widgets.filesystemTree.FileEntry;
@@ -23,6 +21,8 @@ public class MainController implements Initializable {
 
     @FXML private TextArea commandChannelHistory;
 
+    @FXML private TextField serverUsername;
+    @FXML private PasswordField serverPassword;
     @FXML private TextField serverAddress;
     @FXML private TextField serverPort;
 
@@ -48,42 +48,52 @@ public class MainController implements Initializable {
     }
 
     private void onCommandEvent(Event event){
-        CommandEvent commandEvent = (CommandEvent) event;
-        appendToHistory("Command: " + commandEvent.getCommand().toNetworkString() + "\n");
+        Platform.runLater(() -> {
+            CommandEvent commandEvent = (CommandEvent) event;
+            appendToHistory("Command: " + commandEvent.getCommand().toNetworkString());
+        });
     }
 
     private void onResponseEvent(Event event){
-        ResponseEvent responseEvent = (ResponseEvent) event;
-        appendToHistory("Response: " + responseEvent.getResponse().toNetworkString());
+        Platform.runLater(() -> {
+            ResponseEvent responseEvent = (ResponseEvent) event;
+            appendToHistory("Response: " + responseEvent.getResponse().toNetworkString());
+        });
     }
 
     private void onConnectEvent(Event event){
-        ConnectEvent connectEvent = (ConnectEvent) event;
+        Platform.runLater(() -> {
+            ConnectEvent connectEvent = (ConnectEvent) event;
 
-        switch (connectEvent.getType()){
-            case REQUEST_CONNECTION:
-                connectButton.setDisable(true);
-                connectButton.setText("Connecting");
-                serverAddress.setDisable(true);
-                serverPort.setDisable(true);
-                break;
-            case CONNECTED:
-                connectButton.setDisable(false);
-                connectButton.setText("Disconnect");
-                connected = true;
-                break;
-            case REQUEST_DISCONNECT:
-                connectButton.setDisable(true);
-                connectButton.setText("Disconnecting");
-                break;
-            case DISCONNECTED:
-                connectButton.setDisable(false);
-                connectButton.setText("Connect");
-                serverAddress.setDisable(false);
-                serverPort.setDisable(false);
-                connected = false;
-                break;
-        }
+            switch (connectEvent.getType()) {
+                case REQUEST_CONNECTION:
+                    connectButton.setDisable(true);
+                    connectButton.setText("Connecting");
+                    serverUsername.setDisable(true);
+                    serverPassword.setDisable(true);
+                    serverAddress.setDisable(true);
+                    serverPort.setDisable(true);
+                    break;
+                case CONNECTED:
+                    connectButton.setDisable(false);
+                    connectButton.setText("Disconnect");
+                    connected = true;
+                    break;
+                case REQUEST_DISCONNECT:
+                    connectButton.setDisable(true);
+                    connectButton.setText("Disconnecting");
+                    break;
+                case DISCONNECTED:
+                    connectButton.setDisable(false);
+                    connectButton.setText("Connect");
+                    serverUsername.setDisable(false);
+                    serverPassword.setDisable(false);
+                    serverAddress.setDisable(false);
+                    serverPort.setDisable(false);
+                    connected = false;
+                    break;
+            }
+        });
     }
 
     private void appendToHistory(String data) {
@@ -92,11 +102,13 @@ public class MainController implements Initializable {
     }
 
     @FXML private void onConnectButtonClicked(){
+        final String username = serverUsername.getText();
+        final String password = serverPassword.getText();
         final String hostname = serverAddress.getText();
         final Integer port = Integer.valueOf(serverPort.getText());
 
         if(!connected)
-            dispatcher.dispatch(new ConnectEvent(ConnectEvent.Type.REQUEST_CONNECTION, hostname, port));
+            dispatcher.dispatch(new ConnectEvent(ConnectEvent.Type.REQUEST_CONNECTION, hostname, port, username, password));
         else
             dispatcher.dispatch(new ConnectEvent(ConnectEvent.Type.REQUEST_DISCONNECT));
     }

@@ -38,6 +38,10 @@ public class Response {
                 '}';
     }
 
+    public Type getType() {
+        return type;
+    }
+
     public enum Type{
         OPENING_PASSIVE_CONNECTION( 150, "Opening %s mode data connection for '%s'", 2),
         COMMAND_SUCCESSFUL(         200, "Command successful", 0),

@@ -28,8 +28,9 @@ public class SessionManager {
             case REQUEST_CONNECTION:
                 final Integer port = connectEvent.getPort();
                 final String hostname = connectEvent.getHostname();
-                session.connect(hostname, port);
-                dispatcher.dispatch(new ConnectEvent(ConnectEvent.Type.CONNECTED, hostname, port));
+                final String username = connectEvent.getUsername();
+                final String password = connectEvent.getPassword();
+                session.connect(hostname, port, username, password);
                 break;
             case REQUEST_DISCONNECT:
                 session.disconnect();

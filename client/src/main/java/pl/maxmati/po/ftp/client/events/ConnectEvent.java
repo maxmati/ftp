@@ -8,15 +8,19 @@ public class ConnectEvent implements Event{
     private final Type type;
     private final String hostname;
     private final Integer port;
+    private final String password;
+    private final String username;
 
-    public ConnectEvent(Type type, String hostname, Integer port) {
+    public ConnectEvent(Type type, String hostname, Integer port, String username, String password) {
         this.type = type;
         this.hostname = hostname;
         this.port = port;
+        this.username = username;
+        this.password = password;
     }
 
     public ConnectEvent(Type type) {
-        this(type, null, null);
+        this(type, null, null, null, null);
     }
 
     public Type getType() {
@@ -29,6 +33,14 @@ public class ConnectEvent implements Event{
 
     public Integer getPort() {
         return port;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public String getUsername() {
+        return username;
     }
 
     public enum Type {

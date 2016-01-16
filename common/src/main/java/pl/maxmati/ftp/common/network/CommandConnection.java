@@ -78,6 +78,7 @@ public class CommandConnection {
 
     public void sendResponse(Response response) {
         output.print(response.toNetworkString());
+        output.flush();
         System.out.println("Sent response: " + response);
     }
 

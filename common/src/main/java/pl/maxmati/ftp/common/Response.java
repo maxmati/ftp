@@ -1,5 +1,7 @@
 package pl.maxmati.ftp.common;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -90,10 +92,18 @@ public class Response {
         }
 
         public Object[] parseParams(String msg) {
+            System.out.println(msg);
             Matcher matcher = Type.formatToRegex(format).matcher(msg);
+            if(!matcher.find()) throw new RuntimeException("Response failed to parse");
             Object[] result = new Object[matcher.groupCount()];
-            for (int i = 0; i < result.length; i++) {
-                result[i] = matcher.group(i);
+            for (int i = 1; i <= result.length; i++) {
+                String param = matcher.group(i);
+                final char typeOfFormatMatchingGroup =
+                        getFormat().charAt(StringUtils.ordinalIndexOf(getFormat(), "%", i) + 1);
+                if(typeOfFormatMatchingGroup == 'd')
+                    result[i - 1] = Integer.valueOf(param);
+                else
+                    result[i - 1] = param;
             }
             return result;
         }
@@ -109,9 +119,12 @@ public class Response {
 
 
         public static Pattern formatToRegex(String format){
-            return Pattern.compile(
-                    "^" + format.replaceAll("%s", "([\\w/\\\\]+)").replaceAll("%d", "([0-9]+)") + "$"
-            );
+            final String regex = "^" +
+                    format
+                            .replaceAll("\\(", "\\\\(").replaceAll("\\)", "\\\\)")
+                            .replaceAll("%s", "([\\\\w/\\\\\\\\]+)").replaceAll("%d", "([0-9]+)") + "$";
+            return Pattern.compile(regex);
+
         }
     }
 }

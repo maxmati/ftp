@@ -4,10 +4,7 @@ import pl.maxmati.ftp.common.Response;
 import pl.maxmati.ftp.common.beans.User;
 import pl.maxmati.ftp.common.command.Command;
 import pl.maxmati.ftp.common.network.CommandConnection;
-import pl.maxmati.po.ftp.client.events.CommandEvent;
-import pl.maxmati.po.ftp.client.events.ConnectEvent;
-import pl.maxmati.po.ftp.client.events.EventDispatcher;
-import pl.maxmati.po.ftp.client.events.ResponseEvent;
+import pl.maxmati.po.ftp.client.events.*;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -31,6 +28,15 @@ public class ClientSession implements Runnable{
     public ClientSession(ExecutorService executor, EventDispatcher dispatcher) {
         this.executor = executor;
         this.dispatcher = dispatcher;
+
+        dispatcher.registerListener(CommandEvent.class, this::onCommandEvent);
+    }
+
+    private void onCommandEvent(Event event) {
+        CommandEvent commandEvent = (CommandEvent) event;
+        if(commandEvent.getType() == CommandEvent.Type.REQUEST){
+            connection.sendCommand(commandEvent.getCommand());
+        }
     }
 
     public void connect(String hostname, int port, String username, String password){
@@ -40,7 +46,9 @@ public class ClientSession implements Runnable{
         try {
             socket.connect(new InetSocketAddress(hostname, port));
             connection = new CommandConnection(socket);
-            connection.setOnCommandSentListener(command -> dispatcher.dispatch(new CommandEvent(command)));
+            connection.setOnCommandSentListener(command ->
+                    dispatcher.dispatch(new CommandEvent(CommandEvent.Type.PERFORMED, command))
+            );
             running = true;
             executor.submit(this);
 
@@ -59,12 +67,16 @@ public class ClientSession implements Runnable{
 
     @Override
     public void run() {
-        while (running){
-            Response response = connection.fetchResponse();
-            if(response != null) {
-                dispatcher.dispatch(new ResponseEvent(response));
-                if(!handleAuthentication(response)) continue;
+        try {
+            while (running) {
+                Response response = connection.fetchResponse();
+                if (response != null) {
+                    dispatcher.dispatch(new ResponseEvent(response));
+                    if (!handleAuthentication(response)) continue;
+                }
             }
+        } catch (Exception e){
+            e.printStackTrace();
         }
     }
 

@@ -35,7 +35,7 @@
          </padding>
       </HBox>
       <TextArea fx:id="commandChannelHistory" prefHeight="200.0" prefWidth="200.0" />
-      <TextField />
+      <TextField fx:id="rawFTPCommand" onAction="#sendRawCommand" promptText="Raw FTP command" />
       <HBox prefHeight="400.0" prefWidth="400.0">
          <children>
             <TreeView fx:id="localTree" prefHeight="400.0" prefWidth="400.0" />

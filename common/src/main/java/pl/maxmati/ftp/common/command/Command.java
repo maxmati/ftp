@@ -41,7 +41,7 @@ public class Command {
     }
 
     public String toNetworkString() {
-        return type.toString() + (params.length > 0 ? " " : "") + String.join(" ", params) + "\n";
+        return type.toString() + (params.length > 0 ? " " : "") + String.join(" ", params) + "\r\n";
     }
 
     public enum Type {

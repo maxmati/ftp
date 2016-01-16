@@ -1,15 +1,18 @@
 package pl.maxmati.po.ftp.client;
 
 import javafx.application.Platform;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
+import pl.maxmati.ftp.common.command.Command;
 import pl.maxmati.ftp.common.filesystem.Filesystem;
 import pl.maxmati.po.ftp.client.events.*;
 import pl.maxmati.po.ftp.client.widgets.filesystemTree.FileEntry;
 import pl.maxmati.po.ftp.client.widgets.filesystemTree.FilesystemTree;
 
 import java.net.URL;
+import java.util.Arrays;
 import java.util.ResourceBundle;
 
 /**
@@ -25,6 +28,9 @@ public class MainController implements Initializable {
     @FXML private PasswordField serverPassword;
     @FXML private TextField serverAddress;
     @FXML private TextField serverPort;
+
+    @FXML private TextField rawFTPCommand;
+
 
     @FXML private Button connectButton;
     @FXML private TreeView<FileEntry> localTree;
@@ -48,10 +54,11 @@ public class MainController implements Initializable {
     }
 
     private void onCommandEvent(Event event){
-        Platform.runLater(() -> {
-            CommandEvent commandEvent = (CommandEvent) event;
-            appendToHistory("Command: " + commandEvent.getCommand().toNetworkString());
-        });
+        CommandEvent commandEvent = (CommandEvent) event;
+        if(commandEvent.getType() == CommandEvent.Type.PERFORMED)
+            Platform.runLater( () ->
+                    appendToHistory( "Command: " + commandEvent.getCommand().toNetworkString() )
+            );
     }
 
     private void onResponseEvent(Event event){
@@ -113,4 +120,11 @@ public class MainController implements Initializable {
             dispatcher.dispatch(new ConnectEvent(ConnectEvent.Type.REQUEST_DISCONNECT));
     }
 
+    public void sendRawCommand(ActionEvent actionEvent) {
+        final String[] tokens = rawFTPCommand.getText().split(" ");
+        final Command.Type type = Command.Type.valueOf(tokens[0]);
+        final String[] params = Arrays.copyOfRange(tokens, 1, tokens.length);
+        rawFTPCommand.setText("");
+        dispatcher.dispatch(new CommandEvent(CommandEvent.Type.REQUEST, new Command(type, params)));
+    }
 }

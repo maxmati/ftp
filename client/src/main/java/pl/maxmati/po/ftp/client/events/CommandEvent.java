@@ -6,9 +6,11 @@ import pl.maxmati.ftp.common.command.Command;
  * Created by maxmati on 1/15/16
  */
 public class CommandEvent implements Event{
-    private Command command;
+    private final Type type;
+    private final Command command;
 
-    public CommandEvent(Command command) {
+    public CommandEvent(Type type, Command command) {
+        this.type = type;
         this.command = command;
     }
 
@@ -19,7 +21,16 @@ public class CommandEvent implements Event{
     @Override
     public String toString() {
         return "CommandEvent{" +
-                "command=" + command +
+                "type=" + type +
+                ", command=" + command +
                 '}';
+    }
+
+    public Type getType() {
+        return type;
+    }
+
+    public enum Type {
+        REQUEST, PERFORMED
     }
 }

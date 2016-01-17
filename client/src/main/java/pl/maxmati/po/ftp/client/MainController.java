@@ -110,8 +110,7 @@ public class MainController implements Initializable {
     }
 
     private void appendToHistory(String data) {
-        commandChannelHistory.setText(commandChannelHistory.getText() + data);
-        commandChannelHistory.setScrollTop(Double.MAX_VALUE);
+        commandChannelHistory.appendText(data);
     }
 
     @FXML private void onConnectButtonClicked(){

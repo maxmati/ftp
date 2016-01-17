@@ -1,5 +1,6 @@
 package pl.maxmati.po.ftp.client.widgets.filesystemTree;
 
+import javafx.application.Platform;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import pl.maxmati.ftp.common.exceptions.FilesystemException;
@@ -17,14 +18,20 @@ public class FilesystemTree {
     public void init(Filesystem filesystem, TreeView<FileEntry> treeView){
         this.filesystem = filesystem;
 
-        Path rootPath = Paths.get("/");
-        TreeItem<FileEntry> rootItem = createTreeItem(rootPath, true);
-        populateDir(filesystem, rootPath, rootItem, true);
+        Platform.runLater(() -> {
+            Path rootPath = Paths.get("/");
+            TreeItem<FileEntry> rootItem = createTreeItem(rootPath, true);
+            populateDir(filesystem, rootPath, rootItem, true);
 
-        treeView.setRoot(rootItem);
+            treeView.setRoot(rootItem);
+        });
     }
 
     private void populateDir(Filesystem filesystem, Path path, TreeItem<FileEntry> parent, boolean recursive) {
+        if (parent.getValue().isPopulated())
+            return;
+        parent.getValue().setPopulated(true);
+
         for (Path file : filesystem.listFiles(path)){
 
             TreeItem<FileEntry> item = createTreeItem(file, filesystem.getCWD().startsWith(file));

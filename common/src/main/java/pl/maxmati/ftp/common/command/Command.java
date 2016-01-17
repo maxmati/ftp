@@ -15,7 +15,7 @@ public class Command {
         this.params = new String[0];
     }
 
-    public Command(Type type, String[] params) {
+    public Command(Type type, String... params) {
         this.type = type;
         this.params = params;
     }

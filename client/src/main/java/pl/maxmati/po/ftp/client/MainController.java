@@ -21,19 +21,21 @@ import java.util.ResourceBundle;
 public class MainController implements Initializable {
     private EventDispatcher dispatcher = null;
     private FilesystemTree localFsTree = new FilesystemTree();
+    private FilesystemTree remoteFsTree = new FilesystemTree();
 
     @FXML private TextArea commandChannelHistory;
-
     @FXML private TextField serverUsername;
     @FXML private PasswordField serverPassword;
     @FXML private TextField serverAddress;
+
     @FXML private TextField serverPort;
 
+
     @FXML private TextField rawFTPCommand;
-
-
     @FXML private Button connectButton;
+
     @FXML private TreeView<FileEntry> localTree;
+    @FXML private TreeView<FileEntry> remoteTree;
 
     private boolean connected = false;
 
@@ -42,8 +44,12 @@ public class MainController implements Initializable {
         commandChannelHistory.setEditable(false);
     }
 
-    public void setFilesystem(Filesystem filesystem){
+    public void setLocalFilesystem(Filesystem filesystem){
         localFsTree.init(filesystem, localTree);
+    }
+
+    public void setRemoteFilesystem(Filesystem filesystem) {
+        remoteFsTree.init(filesystem, remoteTree);
     }
 
     public void setEventDispatcher(EventDispatcher dispatcher){

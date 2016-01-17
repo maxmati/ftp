@@ -44,6 +44,10 @@ public class Response {
         return type;
     }
 
+    public Object[] getParams() {
+        return params;
+    }
+
     public enum Type{
         OPENING_PASSIVE_CONNECTION( 150, "Opening %s mode data connection for '%s'", 2),
         COMMAND_SUCCESSFUL(         200, "Command successful", 0),
@@ -67,7 +71,8 @@ public class Response {
         FILE_EXISTS(                550, "%s: File exists", 1),
         NOT_REGULAR_FILE(           550, "%s: Not a regular file" , 1),
         NOT_DIRECTORY(              550, "%s: Not a directory" , 1),
-        DIRECTORY_NOT_EMPTY(        550, "%s: Directory not empty" , 1);
+        DIRECTORY_NOT_EMPTY(        550, "%s: Directory not empty" , 1),
+        NONE( 0, "NONE COMMAND", 0);
 
         private final int code;
         private final String format;
@@ -92,9 +97,9 @@ public class Response {
         }
 
         public Object[] parseParams(String msg) {
-            System.out.println(msg);
             Matcher matcher = Type.formatToRegex(format).matcher(msg);
             if(!matcher.find()) throw new RuntimeException("Response failed to parse");
+
             Object[] result = new Object[matcher.groupCount()];
             for (int i = 1; i <= result.length; i++) {
                 String param = matcher.group(i);
@@ -122,7 +127,7 @@ public class Response {
             final String regex = "^" +
                     format
                             .replaceAll("\\(", "\\\\(").replaceAll("\\)", "\\\\)")
-                            .replaceAll("%s", "([\\\\w/\\\\\\\\]+)").replaceAll("%d", "([0-9]+)") + "$";
+                            .replaceAll("%s", "([\\\\w/\\\\\\\\.]+)").replaceAll("%d", "([0-9]+)") + "$";
             return Pattern.compile(regex);
 
         }

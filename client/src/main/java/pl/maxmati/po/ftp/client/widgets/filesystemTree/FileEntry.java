@@ -7,6 +7,7 @@ import java.nio.file.Path;
  */
 public class FileEntry {
     private final Path path;
+    private boolean populated;
 
     public FileEntry(Path path) {
         this.path = path;
@@ -22,5 +23,13 @@ public class FileEntry {
 
     public Path getPath() {
         return path;
+    }
+
+    public void setPopulated(boolean populated) {
+        this.populated = populated;
+    }
+
+    public boolean isPopulated() {
+        return populated;
     }
 }

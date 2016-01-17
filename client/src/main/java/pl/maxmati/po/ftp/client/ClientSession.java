@@ -24,6 +24,7 @@ public class ClientSession implements Runnable{
 
     private User user = null;
     private AuthenticationStatus authenticationStatus = AuthenticationStatus.USER_REQUIRED;
+    private ClientPassiveConnection passiveConnection = null;
 
     public ClientSession(ExecutorService executor, EventDispatcher dispatcher) {
         this.executor = executor;
@@ -73,10 +74,27 @@ public class ClientSession implements Runnable{
                 if (response != null) {
                     dispatcher.dispatch(new ResponseEvent(response));
                     if (!handleAuthentication(response)) continue;
+
+                    handlePassiveConnection(response);
                 }
             }
         } catch (Exception e){
             e.printStackTrace();
+        }
+    }
+
+    private void handlePassiveConnection(Response response) {
+        if(response.getType() != Response.Type.ENTERING_PASSIVE_MODE)
+            return;
+
+        Object[] params = response.getParams();
+
+        final String ip = params[0] + "." + params[1] + "." + params[2] + "." + params[3];
+        final int port = (256 * (Integer) params[4]) + (Integer) params[5];
+
+        synchronized (this) {
+            passiveConnection = new ClientPassiveConnection(ip, port);
+            this.notifyAll();
         }
     }
 
@@ -102,6 +120,22 @@ public class ClientSession implements Runnable{
 
     private void sendCommand(Command.Type type, String... params){
         connection.sendCommand(new Command(type, params));
+    }
+
+    public synchronized ClientPassiveConnection getPassiveConnection() {
+        while (!havePassiveConnection())
+            try {
+                this.wait();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+
+        return passiveConnection;
+    }
+
+    public synchronized boolean havePassiveConnection(){
+        return passiveConnection != null && passiveConnection.valid();
     }
 
     private enum  AuthenticationStatus {

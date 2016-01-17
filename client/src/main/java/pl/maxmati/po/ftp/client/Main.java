@@ -10,17 +10,23 @@ import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import pl.maxmati.ftp.common.filesystem.LocalFilesystem;
+import pl.maxmati.po.ftp.client.events.ConnectEvent;
 import pl.maxmati.po.ftp.client.events.EventDispatcher;
+import pl.maxmati.po.ftp.client.filesystem.FTPFilesystem;
 
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Paths;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class Main extends Application {
 
-    private EventDispatcher eventDispatcher = new EventDispatcher();
-    private SessionManager sessionManager = new SessionManager(eventDispatcher, Executors.newCachedThreadPool());
+
+    private final ExecutorService executor = Executors.newCachedThreadPool();
+    private final EventDispatcher eventDispatcher = new EventDispatcher(executor);
+    private final SessionManager sessionManager = new SessionManager(eventDispatcher, executor);
+    private final FTPFilesystem ftpFilesystem = new FTPFilesystem(sessionManager.getSession(), eventDispatcher);
 
     public static void main(String[] args) {
         launch(args);
@@ -29,6 +35,8 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) {
 
+
+
         URL location = getClass().getResource("/layouts/main.fxml");
         FXMLLoader fxmlLoader = new FXMLLoader(location);
 
@@ -36,13 +44,22 @@ public class Main extends Application {
             Pane root = fxmlLoader.load();
 
             MainController mainController = fxmlLoader.getController();
-            mainController.setFilesystem(new LocalFilesystem(Paths.get("/home/maxmati")));
+            mainController.setLocalFilesystem(new LocalFilesystem(Paths.get("/home/maxmati")));
             mainController.setEventDispatcher(eventDispatcher);
 
             primaryStage.setScene(new Scene(root));
             primaryStage.show();
+
+            eventDispatcher.registerListener(ConnectEvent.class, event -> {
+                if( ((ConnectEvent)event).getType() == ConnectEvent.Type.CONNECTED ){
+                    mainController.setRemoteFilesystem(ftpFilesystem);
+//                    System.out.println(ftpFilesystem.listFilesName(Paths.get("/home/maxmati/tmp")));
+                }
+            });
+
         } catch (IOException e) {
             e.printStackTrace();
         }
+
     }
 }

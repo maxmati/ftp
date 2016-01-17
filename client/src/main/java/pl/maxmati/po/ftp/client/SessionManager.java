@@ -39,4 +39,7 @@ public class SessionManager {
         }
     }
 
+    public ClientSession getSession() {
+        return session;
+    }
 }

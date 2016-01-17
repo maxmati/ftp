@@ -31,7 +31,7 @@ public class LocalFilesystem implements Filesystem {
 
     @Override
     public String listFilesName(Path path){
-        return listFiles(path).stream()
+        return listFiles(path).parallelStream()
                 .map(Path::getFileName)
                 .map(Path::toString)
                 .collect(Collectors.joining("\n", "", "\n"));
@@ -47,7 +47,7 @@ public class LocalFilesystem implements Filesystem {
             throw new PermissionDeniedException();
 
         try {
-            return Files.list(path)
+            return Files.list(path).parallel()
                     .filter(this::isFileVisible)
                     .collect(Collectors.toList());
         } catch (IOException e) {

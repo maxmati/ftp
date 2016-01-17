@@ -18,39 +18,44 @@ public class FilesystemTree {
     public void init(Filesystem filesystem, TreeView<FileEntry> treeView){
         this.filesystem = filesystem;
 
-        Platform.runLater(() -> {
-            Path rootPath = Paths.get("/");
-            TreeItem<FileEntry> rootItem = createTreeItem(rootPath, true);
-            populateDir(filesystem, rootPath, rootItem, true);
 
-            treeView.setRoot(rootItem);
-        });
+        Path rootPath = Paths.get("/");
+        TreeItem<FileEntry> rootItem = createTreeItem(rootPath, true, true);
+        populateDir(filesystem, rootPath, rootItem);
+        Platform.runLater(() -> treeView.setRoot(rootItem));
     }
 
-    private void populateDir(Filesystem filesystem, Path path, TreeItem<FileEntry> parent, boolean recursive) {
+    private void populateDir(Filesystem filesystem, Path path, TreeItem<FileEntry> parent) {
         if (parent.getValue().isPopulated())
             return;
         parent.getValue().setPopulated(true);
 
         for (Path file : filesystem.listFiles(path)){
+            final boolean layInCWDPath = filesystem.getCWD().startsWith(file);
+            final boolean isDirectory = filesystem.isDirectory(file);
 
-            TreeItem<FileEntry> item = createTreeItem(file, filesystem.getCWD().startsWith(file));
+            TreeItem<FileEntry> item = createTreeItem(file, layInCWDPath, isDirectory);
 
-            parent.getChildren().add(item);
-            if(recursive && filesystem.isDirectory(file))
+            Platform.runLater(() -> parent.getChildren().add(item));
+            if(layInCWDPath && isDirectory)
                 try {
-                    populateDir(filesystem, file, item, filesystem.getCWD().startsWith(file));
+                    populateDir(filesystem, file, item);
                 } catch (FilesystemException ignored){}
         }
     }
 
-    private TreeItem<FileEntry> createTreeItem(Path path, boolean expanded){
-        TreeItem<FileEntry> item = new TreeItem<> (new FileEntry(path));
+    private TreeItem<FileEntry> createTreeItem(Path path, boolean expanded, boolean isDirectory){
+        TreeItem<FileEntry> item = new TreeItem<FileEntry> (new FileEntry(path)){
+            @Override
+            public boolean isLeaf() {
+                return !isDirectory;
+            }
+        };
         item.setExpanded(expanded);
 
         item.expandedProperty().addListener((observable, oldValue, newValue) -> {
            if(newValue)
-               populateDir(filesystem, item.getValue().getPath(), item, true);
+               populateDir(filesystem, item.getValue().getPath(), item);
         });
 
 

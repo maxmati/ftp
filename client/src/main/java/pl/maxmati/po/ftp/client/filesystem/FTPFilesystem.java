@@ -43,6 +43,8 @@ public class FTPFilesystem implements Filesystem {
     public synchronized String listFilesName(Path path) {
         waitForInitialization();
 
+        System.out.println("Listing file names via FTP in: " + path);
+
         Path currentCwd = cwd;
         if(!path.equals(cwd))
             changeDirectory(path);
@@ -64,6 +66,8 @@ public class FTPFilesystem implements Filesystem {
     public synchronized  List<Path> listFiles(Path path) {
         waitForInitialization();
 
+        System.out.println("Listing files via FTP in: " + path);
+
         Path currentCwd = cwd;
         if(!path.equals(cwd))
             changeDirectory(path);
@@ -73,7 +77,9 @@ public class FTPFilesystem implements Filesystem {
         dispatcher.dispatch(new CommandEvent(CommandEvent.Type.REQUEST, new Command(Command.Type.NLST)));
         waitForResponse(Response.Type.OPENING_PASSIVE_CONNECTION);
 
-        List<Path> files = passiveConnection.readAll().map(path::resolve).collect(Collectors.toList());
+        List<Path> files = passiveConnection.readAll().filter(s -> !s.isEmpty()).map(path::resolve).collect(Collectors.toList());
+
+        waitForResponse(Response.Type.TRANSFER_COMPLETE);
 
         if(!path.equals(currentCwd))
             changeDirectory(currentCwd);

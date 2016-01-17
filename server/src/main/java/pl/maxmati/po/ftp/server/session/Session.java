@@ -85,8 +85,9 @@ public class Session implements Runnable{
 
 
     public void listenForPassiveConnection() {
-        int port = 2212;
-        passiveConnection = new PassiveConnection(port, this, executor);
+        passiveConnection = new PassiveConnection(this, executor);
+
+        int port = passiveConnection.getPort();
 
         sendResponse(Response.Type.ENTERING_PASSIVE_MODE, 127, 0, 0, 1, port / 256, port % 256);
     }

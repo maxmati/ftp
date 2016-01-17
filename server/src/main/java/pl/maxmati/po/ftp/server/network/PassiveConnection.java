@@ -19,15 +19,15 @@ public class PassiveConnection{
     private final ExecutorService executor;
     private Socket socket = null;
 
-    public PassiveConnection(int port, Session session, ExecutorService executor) {
+    public PassiveConnection(Session session, ExecutorService executor) {
         this.executor = executor;
         this.session = session;
         try {
-            this.serverSocket = new ServerSocket(port);
+            this.serverSocket = new ServerSocket(0);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        System.out.println("Started listening for passive connection on port: " + port);
+        System.out.println("Started listening for passive connection on port: " + getPort());
         startAccepting();
     }
 
@@ -116,5 +116,9 @@ public class PassiveConnection{
         while ((n = in.read(buffer)) > -1){
             out.write(buffer, 0, n);
         }
+    }
+
+    public int getPort() {
+        return serverSocket.getLocalPort();
     }
 }

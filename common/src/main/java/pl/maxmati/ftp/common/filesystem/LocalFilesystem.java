@@ -200,6 +200,11 @@ public class LocalFilesystem implements Filesystem {
         return cwd;
     }
 
+    @Override
+    public String getID() {
+        return "local";
+    }
+
     private Path resolveIfRelative(Path path) {
         if(!path.isAbsolute())
             path = cwd.resolve(path);

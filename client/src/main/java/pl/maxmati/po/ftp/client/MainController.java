@@ -4,39 +4,41 @@ import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.PasswordField;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import pl.maxmati.ftp.common.command.Command;
 import pl.maxmati.ftp.common.filesystem.Filesystem;
 import pl.maxmati.po.ftp.client.events.*;
-import pl.maxmati.po.ftp.client.widgets.filesystemTree.FileEntry;
 import pl.maxmati.po.ftp.client.widgets.filesystemTree.FilesystemTree;
 
 import java.net.URL;
 import java.util.Arrays;
 import java.util.ResourceBundle;
+import java.util.concurrent.ExecutorService;
 
 /**
  * Created by maxmati on 1/12/16
  */
 public class MainController implements Initializable {
+    private ExecutorService executor = null;
     private EventDispatcher dispatcher = null;
-    private FilesystemTree localFsTree = new FilesystemTree();
-    private FilesystemTree remoteFsTree = new FilesystemTree();
 
     @FXML private TextArea commandChannelHistory;
     @FXML private TextField serverUsername;
     @FXML private PasswordField serverPassword;
+
     @FXML private TextField serverAddress;
 
+
     @FXML private TextField serverPort;
-
-
     @FXML private TextField rawFTPCommand;
+
     @FXML private Button connectButton;
+    @FXML private FilesystemTree localTree;
 
-    @FXML private TreeView<FileEntry> localTree;
-    @FXML private TreeView<FileEntry> remoteTree;
-
+    @FXML private FilesystemTree remoteTree;
     private boolean connected = false;
 
     @Override
@@ -44,12 +46,16 @@ public class MainController implements Initializable {
         commandChannelHistory.setEditable(false);
     }
 
+    public void setExecutor(ExecutorService executor) {
+        this.executor = executor;
+    }
+
     public void setLocalFilesystem(Filesystem filesystem){
-        localFsTree.init(filesystem, localTree);
+        localTree.init(filesystem, executor);
     }
 
     public void setRemoteFilesystem(Filesystem filesystem) {
-        remoteFsTree.init(filesystem, remoteTree);
+        remoteTree.init(filesystem, executor);
     }
 
     public void setEventDispatcher(EventDispatcher dispatcher){

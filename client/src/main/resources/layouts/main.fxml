@@ -3,6 +3,7 @@
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import pl.maxmati.po.ftp.client.widgets.filesystemTree.FilesystemTree?>
 <VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="pl.maxmati.po.ftp.client.MainController">
    <children>
       <HBox prefHeight="100.0" prefWidth="200.0">
@@ -38,8 +39,8 @@
       <TextField fx:id="rawFTPCommand" onAction="#sendRawCommand" promptText="Raw FTP command" />
       <HBox prefHeight="400.0" prefWidth="400.0" VBox.vgrow="ALWAYS">
          <children>
-            <TreeView fx:id="localTree" prefHeight="400.0" prefWidth="400.0" HBox.hgrow="ALWAYS" />
-            <TreeView fx:id="remoteTree" prefHeight="400.0" prefWidth="400.0" HBox.hgrow="ALWAYS" />
+            <FilesystemTree fx:id="localTree" prefHeight="400.0" prefWidth="400.0" HBox.hgrow="ALWAYS" />
+            <FilesystemTree fx:id="remoteTree" prefHeight="400.0" prefWidth="400.0" HBox.hgrow="ALWAYS" />
          </children>
       </HBox>
       <TextField />

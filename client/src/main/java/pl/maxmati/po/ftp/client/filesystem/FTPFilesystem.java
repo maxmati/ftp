@@ -99,18 +99,31 @@ public class FTPFilesystem implements Filesystem {
         } catch (FilesystemException e){
             return false;
         }
-//        return false;
     }
 
     @Override
     public synchronized  void createDir(Path path) {
         waitForInitialization();
 
+        System.out.println("Creating directory: " + path);
+
+        dispatcher.dispatch(new CommandEvent(CommandEvent.Type.REQUEST, new Command(Command.Type.MKD, path.toString())));
+
+        waitForResponse(Response.Type.REQUEST_COMPLETED); //TODO: errors
     }
 
     @Override
     public synchronized  void remove(Path path, boolean directory) {
         waitForInitialization();
+
+        System.out.println("Removing: " + path);
+
+        if(directory)
+            dispatcher.dispatch(new CommandEvent(CommandEvent.Type.REQUEST, new Command(Command.Type.RMD, path.toString())));
+        else
+            dispatcher.dispatch(new CommandEvent(CommandEvent.Type.REQUEST, new Command(Command.Type.DELE, path.toString())));
+
+        waitForResponse(Response.Type.REQUEST_COMPLETED); //TODO: errors
 
     }
 
@@ -118,14 +131,34 @@ public class FTPFilesystem implements Filesystem {
     public synchronized  InputStream getFile(Path path) {
         waitForInitialization();
 
-        return null;
+        System.out.println("Retrieving file: " + path);
+
+        ClientPassiveConnection passiveConnection = acquireClientPassiveConnection();
+
+        dispatcher.dispatch(new CommandEvent(CommandEvent.Type.REQUEST, new Command(Command.Type.RETR, path.toString())));
+
+        waitForResponse(Response.Type.OPENING_PASSIVE_CONNECTION);//TODO: errors
+
+        return passiveConnection.getInputStream();
     }
 
     @Override
-    public synchronized  OutputStream storeFile(Path path, boolean override) {
+    public synchronized  OutputStream storeFile(Path path, boolean append) {
         waitForInitialization();
 
-        return null;
+        System.out.println("Storing file: " + path);
+
+        ClientPassiveConnection passiveConnection = acquireClientPassiveConnection();
+
+        if(append)
+            dispatcher.dispatch(new CommandEvent(CommandEvent.Type.REQUEST, new Command(Command.Type.APPE, path.toString())));
+        else
+            dispatcher.dispatch(new CommandEvent(CommandEvent.Type.REQUEST, new Command(Command.Type.STOR, path.toString())));
+
+
+        waitForResponse(Response.Type.OPENING_PASSIVE_CONNECTION);//TODO: errors
+
+        return passiveConnection.getOutputStream();
     }
 
     @Override
@@ -144,6 +177,11 @@ public class FTPFilesystem implements Filesystem {
         waitForInitialization();
 
         return cwd;
+    }
+
+    @Override
+    public String getID() {
+        return "ftp";
     }
 
     private ClientPassiveConnection acquireClientPassiveConnection() {

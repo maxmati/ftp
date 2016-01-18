@@ -44,6 +44,7 @@ public class Main extends Application {
             Pane root = fxmlLoader.load();
 
             MainController mainController = fxmlLoader.getController();
+            mainController.setExecutor(executor);
             mainController.setLocalFilesystem(new LocalFilesystem(Paths.get("/home/maxmati")));
             mainController.setEventDispatcher(eventDispatcher);
 
@@ -53,7 +54,6 @@ public class Main extends Application {
             eventDispatcher.registerListener(ConnectEvent.class, event -> {
                 if( ((ConnectEvent)event).getType() == ConnectEvent.Type.CONNECTED ){
                     mainController.setRemoteFilesystem(ftpFilesystem);
-//                    System.out.println(ftpFilesystem.listFilesName(Paths.get("/home/maxmati/tmp")));
                 }
             });
 

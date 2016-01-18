@@ -1,8 +1,6 @@
 package pl.maxmati.po.ftp.client;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.Socket;
 import java.util.stream.Stream;
 
@@ -36,5 +34,23 @@ public class ClientPassiveConnection {
         }
 
         return bufferedReader.lines();
+    }
+
+    public OutputStream getOutputStream() {
+        used = true;
+        try {
+            return socket.getOutputStream();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public InputStream getInputStream() {
+        used = true;
+        try {
+            return socket.getInputStream();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

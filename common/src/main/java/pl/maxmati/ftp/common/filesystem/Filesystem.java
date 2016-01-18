@@ -22,9 +22,11 @@ public interface Filesystem {
 
     InputStream getFile(Path path);
 
-    OutputStream storeFile(Path path, boolean override);
+    OutputStream storeFile(Path path, boolean append);
 
     void changeDirectory(Path path);
 
     Path getCWD();
+
+    String getID();
 }

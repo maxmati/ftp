@@ -13,6 +13,7 @@ import pl.maxmati.ftp.common.filesystem.LocalFilesystem;
 import pl.maxmati.po.ftp.client.events.ConnectEvent;
 import pl.maxmati.po.ftp.client.events.EventDispatcher;
 import pl.maxmati.po.ftp.client.filesystem.FTPFilesystem;
+import pl.maxmati.po.ftp.client.network.ConnectionManager;
 
 import java.io.IOException;
 import java.net.URL;
@@ -25,8 +26,8 @@ public class Main extends Application {
 
     private final ExecutorService executor = Executors.newCachedThreadPool();
     private final EventDispatcher eventDispatcher = new EventDispatcher(executor);
-    private final SessionManager sessionManager = new SessionManager(eventDispatcher, executor);
-    private final FTPFilesystem ftpFilesystem = new FTPFilesystem(sessionManager.getSession(), eventDispatcher);
+    private final ConnectionManager connectionManager = new ConnectionManager(eventDispatcher, executor);
+    private final FTPFilesystem ftpFilesystem = new FTPFilesystem(connectionManager.getSession(), eventDispatcher);
 
     public static void main(String[] args) {
         launch(args);

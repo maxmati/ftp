@@ -5,9 +5,9 @@ import pl.maxmati.ftp.common.command.Command;
 import pl.maxmati.ftp.common.exceptions.FilesystemException;
 import pl.maxmati.ftp.common.exceptions.NoSuchFileException;
 import pl.maxmati.ftp.common.filesystem.Filesystem;
-import pl.maxmati.po.ftp.client.ClientPassiveConnection;
-import pl.maxmati.po.ftp.client.ClientSession;
 import pl.maxmati.po.ftp.client.events.*;
+import pl.maxmati.po.ftp.client.network.ClientPassiveConnection;
+import pl.maxmati.po.ftp.client.session.ClientSession;
 
 import java.io.InputStream;
 import java.io.OutputStream;

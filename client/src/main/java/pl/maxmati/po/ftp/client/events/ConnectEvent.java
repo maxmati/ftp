@@ -44,7 +44,7 @@ public class ConnectEvent implements Event{
     }
 
     public enum Type {
-        CONNECTED, REQUEST_DISCONNECT, DISCONNECTED, REQUEST_CONNECTION
+        CONNECTED, REQUEST_DISCONNECT, DISCONNECTED, ERROR_BAD_PASS, ERROR_UNABLE_CONNECT, REQUEST_CONNECTION
     }
 
     @Override

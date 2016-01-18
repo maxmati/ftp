@@ -1,4 +1,4 @@
-package pl.maxmati.po.ftp.client;
+package pl.maxmati.po.ftp.client.network;
 
 import java.io.*;
 import java.net.Socket;
@@ -52,5 +52,12 @@ public class ClientPassiveConnection {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public void close() {
+        used = true;
+        try {
+            socket.close();
+        } catch (IOException ignore) {}
     }
 }

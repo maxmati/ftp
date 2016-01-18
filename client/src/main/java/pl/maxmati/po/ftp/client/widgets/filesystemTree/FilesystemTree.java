@@ -73,6 +73,10 @@ public class FilesystemTree extends TreeView<FileEntry>{
         return item;
     }
 
+    public void clear() {
+        setRoot(null);
+    }
+
     private final class FileEntryCell extends TreeCell<FileEntry> {
 
         public FileEntryCell(Filesystem filesystem, ExecutorService executor) {

@@ -4,10 +4,7 @@ import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.Button;
-import javafx.scene.control.PasswordField;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import pl.maxmati.ftp.common.command.Command;
 import pl.maxmati.ftp.common.filesystem.Filesystem;
 import pl.maxmati.po.ftp.client.events.*;
@@ -102,6 +99,11 @@ public class MainController implements Initializable {
                     connectButton.setDisable(true);
                     connectButton.setText("Disconnecting");
                     break;
+                case ERROR_BAD_PASS:
+                    showError("Unable to authenticate", "You probably specified wrong username or password");
+                    break;
+                case ERROR_UNABLE_CONNECT:
+                    showError("Unable to connect", "Program was unable to connect with FTP server");
                 case DISCONNECTED:
                     connectButton.setDisable(false);
                     connectButton.setText("Connect");
@@ -109,10 +111,19 @@ public class MainController implements Initializable {
                     serverPassword.setDisable(false);
                     serverAddress.setDisable(false);
                     serverPort.setDisable(false);
+                    remoteTree.clear();
                     connected = false;
                     break;
             }
         });
+    }
+
+    private void showError(String title, String description) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Error");
+        alert.setHeaderText(title);
+        alert.setContentText(description);
+        alert.show();
     }
 
     private void appendToHistory(String data) {
@@ -123,7 +134,12 @@ public class MainController implements Initializable {
         final String username = serverUsername.getText();
         final String password = serverPassword.getText();
         final String hostname = serverAddress.getText();
-        final Integer port = Integer.valueOf(serverPort.getText());
+        final String portText = serverPort.getText();
+
+        if(username.isEmpty() || password.isEmpty() || hostname.isEmpty() || portText.isEmpty())
+            return;
+
+        final Integer port = Integer.valueOf(portText);
 
         if(!connected)
             dispatcher.dispatch(new ConnectEvent(ConnectEvent.Type.REQUEST_CONNECTION, hostname, port, username, password));

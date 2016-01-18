@@ -1,10 +1,11 @@
-package pl.maxmati.po.ftp.client;
+package pl.maxmati.po.ftp.client.session;
 
 import pl.maxmati.ftp.common.Response;
 import pl.maxmati.ftp.common.beans.User;
 import pl.maxmati.ftp.common.command.Command;
 import pl.maxmati.ftp.common.network.CommandConnection;
 import pl.maxmati.po.ftp.client.events.*;
+import pl.maxmati.po.ftp.client.network.ClientPassiveConnection;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -40,7 +41,7 @@ public class ClientSession implements Runnable{
         }
     }
 
-    public void connect(String hostname, int port, String username, String password){
+    public boolean connect(String hostname, int port, String username, String password){
         user = new User(username, password);
 
         Socket socket = new Socket();
@@ -55,12 +56,22 @@ public class ClientSession implements Runnable{
 
         } catch (IOException e) {
             e.printStackTrace();
+            if(connection != null)
+                connection.close();
+            running = false;
+            return false;
         }
+        return true;
     }
 
     public void disconnect() {
+        dispatcher.dispatch(new ConnectEvent(ConnectEvent.Type.DISCONNECTED));
+
         sendCommand(Command.Type.QUIT);
         running = false;
+        if(havePassiveConnection()) {
+            passiveConnection.close();
+        }
         connection.close();
         authenticationStatus = AuthenticationStatus.USER_REQUIRED;
         user = null;
@@ -73,10 +84,13 @@ public class ClientSession implements Runnable{
                 Response response = connection.fetchResponse();
                 if (response != null) {
                     dispatcher.dispatch(new ResponseEvent(response));
+
+                    if (response.getType() == Response.Type.BYE) disconnect();
                     if (!handleAuthentication(response)) continue;
 
                     handlePassiveConnection(response);
-                }
+                } else
+                    running = false;
             }
         } catch (Exception e){
             e.printStackTrace();
@@ -99,6 +113,9 @@ public class ClientSession implements Runnable{
     }
 
     private boolean handleAuthentication(Response response) {
+        if(response.getType() == Response.Type.INVALID_USER_OR_PASS)
+            dispatcher.dispatch(new ConnectEvent(ConnectEvent.Type.ERROR_BAD_PASS));
+
         if(authenticationStatus == AuthenticationStatus.USER_REQUIRED &&
                 response.getType() == Response.Type.HELLO) {
             sendCommand(Command.Type.USER, user.getUsername());

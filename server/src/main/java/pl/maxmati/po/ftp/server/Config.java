@@ -40,4 +40,8 @@ public class Config {
     public int getIP4() {
         return 1;
     }
+
+    public String getBaseCWD() {
+        return "/";
+    }
 }

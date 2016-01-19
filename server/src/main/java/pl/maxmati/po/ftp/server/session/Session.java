@@ -81,6 +81,7 @@ public class Session implements Runnable{
     public void quit() {
         sendResponse(Response.Type.BYE);
         running.set(false);
+        watchdog.stop();
         commandConnection.close();
     }
 

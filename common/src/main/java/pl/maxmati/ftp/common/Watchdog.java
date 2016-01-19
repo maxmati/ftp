@@ -10,7 +10,7 @@ public class Watchdog {
     private final int timeout;
     private final WatchdogTask timeoutTask;
     private TimerTask timerTask = null;
-    private final Timer timer = new Timer("Watchdog timer");
+    private Timer timer = new Timer("Watchdog timer");
     private final boolean autorestart;
 
     public Watchdog(int timeout, WatchdogTask timeoutTask) {
@@ -25,7 +25,10 @@ public class Watchdog {
         reset();
     }
 
-    public void reset() {
+    public synchronized void reset() {
+        if(timer == null)
+            return;
+
         if(timerTask != null)
             timerTask.cancel();
 
@@ -47,9 +50,11 @@ public class Watchdog {
         };
     }
 
-    public void stop() {
+    public synchronized void stop() {
         if(timerTask != null)
             timerTask.cancel();
+        timer.cancel();
+        timer = null;
     }
 
 

@@ -1,6 +1,7 @@
 package pl.maxmati.po.ftp.server.session;
 
 import pl.maxmati.ftp.common.filesystem.LocalFilesystem;
+import pl.maxmati.po.ftp.server.Config;
 import pl.maxmati.po.ftp.server.DatabasePermissionManager;
 import pl.maxmati.po.ftp.server.UsersManager;
 import pl.maxmati.po.ftp.server.database.dao.FilesDAO;
@@ -48,7 +49,7 @@ public class SessionManager {
                         executor,
                         new LocalFilesystem(
                                 permissionManager,
-                                Paths.get("/home/maxmati/tmp")
+                                Paths.get(Config.getInstance().getBaseCWD())
                         ),
                         permissionManager
                 )

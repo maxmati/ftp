@@ -148,4 +148,9 @@ public class Session implements Runnable{
     public boolean isAuthenticated() {
         return authenticated;
     }
+
+    public void abortTransfer() {
+        if(passiveConnection != null && passiveConnection.abort())
+            sendResponse(Response.Type.TRANSFER_ABORTED);
+    }
 }

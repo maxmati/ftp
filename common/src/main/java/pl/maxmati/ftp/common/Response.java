@@ -21,6 +21,7 @@ public class Response {
     }
 
     public Response(int code, String msg){
+        System.out.println("Parsing msg: " + msg);
         type = Type.fromCodeAndMsg(code, msg);
         params = type.parseParams(msg);
     }
@@ -54,6 +55,7 @@ public class Response {
         HELLO(                      220, "Maxmati Server ready", 0),
         BYE(                        221, "Bye", 0),
         TRANSFER_COMPLETE(          226, "Transfer complete", 0),
+        CLOSING_DATA_CONNECTION(    226, "Closing data connection", 0),
         ENTERING_PASSIVE_MODE(      227, "Entering Passive Mode (%d,%d,%d,%d,%d,%d)", 6),
         USER_LOGGED_IN(             230, "User logged in", 0),
         REQUEST_COMPLETED(          250, "%s was successful", 1),
@@ -61,6 +63,7 @@ public class Response {
         CREATED_DIRECTORY(          257, "%s was created", 1),
         PASSWORD_REQUIRED(          331, "Password required", 0),
         NO_DATA_CONNECTION(         425, "Can't open data connection", 0),
+        TRANSFER_ABORTED(           426, "Connection closed; transfer aborted.", 0),
         INVALID_USER_OR_PASS(       430, "Invalid username or password", 0),
         ABORTED_LOCAL_ERROR(        451, "Requested action aborted. Local error in processing.", 0),
         PERMISSION_DENIED(          500, "Permission denied", 0),
@@ -127,7 +130,7 @@ public class Response {
             final String regex = "^" +
                     format
                             .replaceAll("\\(", "\\\\(").replaceAll("\\)", "\\\\)")
-                            .replaceAll("%s", "([\\\\w/\\\\\\\\.]+)").replaceAll("%d", "([0-9]+)") + "$";
+                            .replaceAll("%s", "(.+)").replaceAll("%d", "([0-9]+)") + "$";//[\\w/\\\\.]
             return Pattern.compile(regex);
 
         }

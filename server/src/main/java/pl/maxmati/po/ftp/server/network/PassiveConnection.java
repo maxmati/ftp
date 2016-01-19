@@ -121,4 +121,17 @@ public class PassiveConnection{
     public int getPort() {
         return serverSocket.getLocalPort();
     }
+
+    public boolean abort() {
+        if(socket != null) {
+            try {
+                socket.close();
+                return true;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return false;
+    }
 }

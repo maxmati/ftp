@@ -21,6 +21,7 @@ public class CommandProcessor {
     private final Filesystem filesystem;
     private static final List<Command.Type> WITHOUT_AUTH_COMMAND_TYPES =
             Arrays.asList(Command.Type.USER, Command.Type.PASS);
+    private boolean aborted = false;
 
     public CommandProcessor(Session session, Filesystem filesystem) {
         this.session = session;
@@ -82,6 +83,11 @@ public class CommandProcessor {
             case APPE:
                 receiveFile(command.getParam(0), true, session);
                 break;
+            case ABOR:
+                session.abortTransfer();
+                aborted = true;
+                session.sendResponse(Response.Type.CLOSING_DATA_CONNECTION);
+                break;
             case NONE:
                 session.sendResponse(Response.Type.NOT_IMPLEMENTED);
                 break;
@@ -135,24 +141,29 @@ public class CommandProcessor {
     private void sendFile(String filename, Session session) {
         if (!session.havePassiveConnection()) return;
 
+        aborted = false;
+
         try {
             InputStream stream = filesystem.getFile(Paths.get(filename));
             session.getPassiveConnection().sendData(stream);
             session.sendResponse(Response.Type.OPENING_PASSIVE_CONNECTION, "binary", filename);
         } catch (FilesystemException e){
-            session.sendResponse(e.getResponse());
+            if(!aborted)
+                session.sendResponse(e.getResponse());
         }
     }
 
     private void receiveFile(String filename, boolean override, Session session) {
         if (!session.havePassiveConnection()) return;
+        aborted = false;
 
         try {
             OutputStream stream = filesystem.storeFile(Paths.get(filename), override);
             session.getPassiveConnection().receiveData(stream);
             session.sendResponse(Response.Type.OPENING_PASSIVE_CONNECTION, "binary", filename);
         } catch (FilesystemException e){
-            session.sendResponse(e.getResponse());
+            if(!aborted)
+                session.sendResponse(e.getResponse());
         }
 
     }

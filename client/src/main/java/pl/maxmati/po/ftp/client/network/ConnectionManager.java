@@ -14,6 +14,7 @@ public class ConnectionManager {
     final private EventDispatcher dispatcher;
     final private ExecutorService executorService;
     final private ClientSession session;
+    private ConnectionKeeper connectionKeeper = null;
 
     public ConnectionManager(EventDispatcher dispatcher, ExecutorService executorService) {
         this.dispatcher = dispatcher;
@@ -33,10 +34,16 @@ public class ConnectionManager {
                 final String password = connectEvent.getPassword();
                 if(!session.connect(hostname, port, username, password))
                     dispatcher.dispatch(new ConnectEvent(ConnectEvent.Type.ERROR_UNABLE_CONNECT));
+
+                connectionKeeper = new ConnectionKeeper(dispatcher);
                 break;
             case REQUEST_DISCONNECT:
             case ERROR_BAD_PASS:
                 session.disconnect();
+                if(connectionKeeper != null){
+                    connectionKeeper.stop();
+                    connectionKeeper = null;
+                }
                 break;
         }
     }

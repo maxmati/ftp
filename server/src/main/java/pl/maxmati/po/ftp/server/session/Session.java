@@ -1,13 +1,13 @@
 package pl.maxmati.po.ftp.server.session;
 
 import pl.maxmati.ftp.common.Response;
+import pl.maxmati.ftp.common.Watchdog;
 import pl.maxmati.ftp.common.beans.User;
 import pl.maxmati.ftp.common.command.Command;
 import pl.maxmati.ftp.common.filesystem.Filesystem;
 import pl.maxmati.ftp.common.network.CommandConnection;
 import pl.maxmati.po.ftp.server.DatabasePermissionManager;
 import pl.maxmati.po.ftp.server.UsersManager;
-import pl.maxmati.po.ftp.server.Watchdog;
 import pl.maxmati.po.ftp.server.command.CommandProcessor;
 import pl.maxmati.po.ftp.server.network.PassiveConnection;
 

@@ -149,9 +149,13 @@ public class MainController implements Initializable {
 
     public void sendRawCommand(ActionEvent actionEvent) {
         final String[] tokens = rawFTPCommand.getText().split(" ");
-        final Command.Type type = Command.Type.valueOf(tokens[0]);
-        final String[] params = Arrays.copyOfRange(tokens, 1, tokens.length);
-        rawFTPCommand.setText("");
-        dispatcher.dispatch(new CommandEvent(CommandEvent.Type.REQUEST, new Command(type, params)));
+        try {
+            final Command.Type type = Command.Type.valueOf(tokens[0]);
+            rawFTPCommand.setText("");
+            final String[] params = Arrays.copyOfRange(tokens, 1, tokens.length);
+            dispatcher.dispatch(new CommandEvent(CommandEvent.Type.REQUEST, new Command(type, params)));
+        } catch (IllegalArgumentException e){
+            e.printStackTrace();
+        }
     }
 }

@@ -49,7 +49,8 @@ public class SessionManager {
                         executor,
                         new LocalFilesystem(
                                 permissionManager,
-                                Paths.get(Config.getInstance().getBaseCWD())
+                                Paths.get(Config.getInstance().getBaseCWD()),
+                                Paths.get("/home/maxmati/tmp")
                         ),
                         permissionManager
                 )

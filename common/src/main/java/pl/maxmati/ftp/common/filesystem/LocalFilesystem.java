@@ -8,6 +8,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -18,15 +19,18 @@ import java.util.stream.Collectors;
 public class LocalFilesystem implements Filesystem {
     private final PermissionManager permissionManager;
     private Path cwd;
+    private final Path chroot;
 
     public LocalFilesystem(Path cwd) {
         this.permissionManager = null;
         this.cwd = cwd;
+        this.chroot = Paths.get("/");
     }
 
-    public LocalFilesystem(PermissionManager permissionManager, Path cwd) {
+    public LocalFilesystem(PermissionManager permissionManager, Path cwd, Path chroot) {
         this.permissionManager = permissionManager;
         this.cwd = cwd;
+        this.chroot = chroot;
     }
 
     @Override
@@ -40,6 +44,7 @@ public class LocalFilesystem implements Filesystem {
     @Override
     public List<Path> listFiles(Path path){
         path = resolveIfRelative(path);
+        path = prependRoot(path);
 
         System.out.println("Listing files in directory " + path);
 
@@ -55,9 +60,14 @@ public class LocalFilesystem implements Filesystem {
         }
     }
 
+    private Path prependRoot(Path path) {
+        return chroot.resolve(Paths.get("/").relativize(path));
+    }
+
     @Override
     public boolean isDirectory(Path path) {
         path = resolveIfRelative(path);
+        path = prependRoot(path);
 
         return Files.isDirectory(path);
     }
@@ -65,6 +75,7 @@ public class LocalFilesystem implements Filesystem {
     @Override
     public void createDir(Path path) {
         path = resolveIfRelative(path);
+        path = prependRoot(path);
 
         if(!parentIsDirectory(path))
             throw new NoSuchFileException(path.toString());
@@ -90,6 +101,7 @@ public class LocalFilesystem implements Filesystem {
     @Override
     public void remove(Path path, boolean directory) {
         path = resolveIfRelative(path);
+        path = prependRoot(path);
 
         if(permissionManager != null && !permissionManager.haveWritePermission(path.getParent()))
             throw new PermissionDeniedException();
@@ -121,6 +133,7 @@ public class LocalFilesystem implements Filesystem {
     @Override
     public InputStream getFile(Path path) {
         path = resolveIfRelative(path);
+        path = prependRoot(path);
 
         try {
             if(!Files.isReadable(path))
@@ -141,6 +154,7 @@ public class LocalFilesystem implements Filesystem {
     @Override
     public OutputStream storeFile(Path path, boolean append) {
         path = resolveIfRelative(path);
+        path = prependRoot(path);
 
         try {
             boolean shouldAddFilesEntry = false;

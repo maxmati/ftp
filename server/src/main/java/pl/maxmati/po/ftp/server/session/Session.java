@@ -6,6 +6,7 @@ import pl.maxmati.ftp.common.beans.User;
 import pl.maxmati.ftp.common.command.Command;
 import pl.maxmati.ftp.common.filesystem.Filesystem;
 import pl.maxmati.ftp.common.network.CommandConnection;
+import pl.maxmati.po.ftp.server.Config;
 import pl.maxmati.po.ftp.server.DatabasePermissionManager;
 import pl.maxmati.po.ftp.server.UsersManager;
 import pl.maxmati.po.ftp.server.command.CommandProcessor;
@@ -89,7 +90,13 @@ public class Session implements Runnable{
 
         int port = passiveConnection.getPort();
 
-        sendResponse(Response.Type.ENTERING_PASSIVE_MODE, 127, 0, 0, 1, port / 256, port % 256);
+        final Config config = Config.getInstance();
+        sendResponse(
+                Response.Type.ENTERING_PASSIVE_MODE,
+                config.getIP1(), config.getIP2(),
+                config.getIP3(), config.getIP4(),
+                port / 256, port % 256
+        );
     }
 
     public void fetchUser(String username) {

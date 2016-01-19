@@ -1,5 +1,7 @@
 package pl.maxmati.po.ftp.server.database;
 
+import pl.maxmati.po.ftp.server.Config;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -11,11 +13,11 @@ import java.util.List;
  */
 public class ConnectionPool {
     @SuppressWarnings("SpellCheckingInspection")
-    private static final String DATABASE_URL = "jdbc:mysql://mysql.maxmati.pl/poftp";
+    private static final String DATABASE_URL = Config.getInstance().getDBUrl();// "jdbc:mysql://mysql.maxmati.pl/poftp";
     @SuppressWarnings("SpellCheckingInspection")
-    private static final String DATABASE_USERNAME = "poftp";
+    private static final String DATABASE_USERNAME = Config.getInstance().getDBUser();//"poftp";
     @SuppressWarnings("SpellCheckingInspection")
-    private static final String DATABASE_PASSWORD = "aarmzEjvaRYFstCE";
+    private static final String DATABASE_PASSWORD = Config.getInstance().getDBPass(); //"aarmzEjvaRYFstCE";
 
     private static final String CREATE_USERS_TABLE_QUERY =
             "CREATE TABLE IF NOT EXISTS `users` (" +

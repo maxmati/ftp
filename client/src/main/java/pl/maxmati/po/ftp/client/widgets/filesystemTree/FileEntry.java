@@ -7,10 +7,12 @@ import java.nio.file.Path;
  */
 public class FileEntry {
     private final Path path;
+    private final boolean directory;
     private boolean populated;
 
-    public FileEntry(Path path) {
+    public FileEntry(Path path, boolean isDirectory) {
         this.path = path;
+        this.directory = isDirectory;
     }
 
     @Override
@@ -31,5 +33,9 @@ public class FileEntry {
 
     public boolean isPopulated() {
         return populated;
+    }
+
+    public boolean isDirectory() {
+        return directory;
     }
 }

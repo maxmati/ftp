@@ -1,9 +1,7 @@
 package pl.maxmati.po.ftp.client.widgets.filesystemTree;
 
 import javafx.application.Platform;
-import javafx.scene.control.TreeCell;
-import javafx.scene.control.TreeItem;
-import javafx.scene.control.TreeView;
+import javafx.scene.control.*;
 import javafx.scene.effect.InnerShadow;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
@@ -17,6 +15,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 
 /**
@@ -40,6 +39,7 @@ public class FilesystemTree extends TreeView<FileEntry>{
     private void populateDir(Filesystem filesystem, Path path, TreeItem<FileEntry> parent) {
         parent.getValue().setPopulated(true);
 
+
         for (Path file : filesystem.listFiles(path)){
             final boolean layInCWDPath = filesystem.getCWD().startsWith(file);
             final boolean isDirectory = filesystem.isDirectory(file);
@@ -56,7 +56,7 @@ public class FilesystemTree extends TreeView<FileEntry>{
 
     private TreeItem<FileEntry> createTreeItem(Path path, boolean expanded, boolean isDirectory){
 
-        TreeItem<FileEntry> item = new TreeItem<FileEntry> (new FileEntry(path)){
+        TreeItem<FileEntry> item = new TreeItem<FileEntry> (new FileEntry(path, isDirectory)){
 
             @Override
             public boolean isLeaf() {
@@ -79,7 +79,55 @@ public class FilesystemTree extends TreeView<FileEntry>{
 
     private final class FileEntryCell extends TreeCell<FileEntry> {
 
+        private final ContextMenu fileMenu = new ContextMenu();
+        private final ContextMenu dirMenu = new ContextMenu();
+        private final MenuItem removeDir;
+
         public FileEntryCell(Filesystem filesystem, ExecutorService executor) {
+
+            MenuItem removeFile = new MenuItem("Remove");
+            removeFile.setOnAction(event -> {
+                filesystem.remove(getTreeItem().getValue().getPath(), false);
+                refresh(filesystem, getTreeItem().getParent());
+            });
+            fileMenu.getItems().add(removeFile);
+
+            removeDir = new MenuItem("Remove");
+            removeDir.setOnAction(event -> {
+                filesystem.remove(getTreeItem().getValue().getPath(), true);
+                refresh(filesystem, getTreeItem().getParent());
+            });
+            dirMenu.getItems().add(removeDir);
+
+            MenuItem createDir = new MenuItem("Create directory");
+            createDir.setOnAction(event -> {
+                TextInputDialog dialog = new TextInputDialog("New_folder");
+                dialog.setTitle("Creating new folder");
+                dialog.setHeaderText("What name?");
+                dialog.setContentText("Please enter new folder name:");
+
+                Optional<String> result = dialog.showAndWait();
+                if (result.isPresent()){
+                    filesystem.createDir(getItem().getPath().resolve(result.get()));
+                    refresh(filesystem, getTreeItem());
+                    getTreeItem().setExpanded(true);
+                }
+            });
+
+            dirMenu.getItems().add(createDir);
+
+
+
+            dirMenu.setOnShown(e -> {
+                if(!getItem().isPopulated()) {
+                    try {
+                        populateDir(filesystem, getItem().getPath(), getTreeItem());
+                    }catch (FilesystemException ignore){}
+                }
+
+                removeDir.setDisable(!getTreeItem().getChildren().isEmpty());
+            });
+
             setOnDragDetected(event -> {
                 ClipboardContent content;
 
@@ -147,12 +195,16 @@ public class FilesystemTree extends TreeView<FileEntry>{
                     }
 
                     TreeItem<FileEntry> dstItem = dstCell.getTreeItem();
-                    dstItem.getChildren().clear();
-                    populateDir(dstT.filesystem, dstItem.getValue().getPath(), dstItem);
+                    refresh(dstT.filesystem, dstItem);
                 });
 
                 event.setDropCompleted(true);
             });
+        }
+
+        private void refresh(Filesystem filesystem, TreeItem<FileEntry> dstItem) {
+            dstItem.getChildren().clear();
+            populateDir(filesystem, dstItem.getValue().getPath(), dstItem);
         }
 
         @Override
@@ -161,6 +213,12 @@ public class FilesystemTree extends TreeView<FileEntry>{
 
             if(!empty) {
                 setText(item.toString());
+
+                if(!item.isDirectory())
+                    setContextMenu(fileMenu);
+                else
+                    setContextMenu(dirMenu);
+
             } else {
                 setText(null);
             }

@@ -109,7 +109,7 @@ public class FTPFilesystem implements Filesystem {
 
         dispatcher.dispatch(new CommandEvent(CommandEvent.Type.REQUEST, new Command(Command.Type.MKD, path.toString())));
 
-        waitForResponse(Response.Type.REQUEST_COMPLETED); //TODO: errors
+        waitForResponse(Response.Type.CREATED_DIRECTORY); //TODO: errors
     }
 
     @Override

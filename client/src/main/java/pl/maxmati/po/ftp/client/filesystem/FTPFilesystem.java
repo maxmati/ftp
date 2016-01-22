@@ -2,8 +2,7 @@ package pl.maxmati.po.ftp.client.filesystem;
 
 import pl.maxmati.ftp.common.Response;
 import pl.maxmati.ftp.common.command.Command;
-import pl.maxmati.ftp.common.exceptions.FilesystemException;
-import pl.maxmati.ftp.common.exceptions.NoSuchFileException;
+import pl.maxmati.ftp.common.exceptions.*;
 import pl.maxmati.ftp.common.filesystem.Filesystem;
 import pl.maxmati.po.ftp.client.events.*;
 import pl.maxmati.po.ftp.client.network.ClientPassiveConnection;
@@ -17,11 +16,19 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Created by maxmati on 1/16/16
  */
 public class FTPFilesystem implements Filesystem {
+    private static final Response.Type[] ERROR_CODES = {
+            Response.Type.ABORTED_LOCAL_ERROR, Response.Type.BAD_SEQUENCE_OF_COMMANDS,
+            Response.Type.DIRECTORY_NOT_EMPTY, Response.Type.INVALID_USER_OR_PASS,
+            Response.Type.NO_DATA_CONNECTION, Response.Type.NO_SUCH_FILE_OR_DIR,
+            Response.Type.NOT_DIRECTORY, Response.Type.NOT_REGULAR_FILE,
+            Response.Type.PERMISSION_DENIED, Response.Type.SYNTAX_ERROR
+    };
     private final ClientSession session;
     private final EventDispatcher dispatcher;
     private final Object waitingForResponseLock = new Object();
@@ -109,7 +116,7 @@ public class FTPFilesystem implements Filesystem {
 
         dispatcher.dispatch(new CommandEvent(CommandEvent.Type.REQUEST, new Command(Command.Type.MKD, path.toString())));
 
-        waitForResponse(Response.Type.CREATED_DIRECTORY); //TODO: errors
+        waitForResponse(true, Response.Type.CREATED_DIRECTORY); //TODO: errors
     }
 
     @Override
@@ -123,7 +130,8 @@ public class FTPFilesystem implements Filesystem {
         else
             dispatcher.dispatch(new CommandEvent(CommandEvent.Type.REQUEST, new Command(Command.Type.DELE, path.toString())));
 
-        waitForResponse(Response.Type.REQUEST_COMPLETED); //TODO: errors
+        Response.Type response = waitForResponse(true, Response.Type.REQUEST_COMPLETED);
+        parseErrors(response, path.toString());
 
     }
 
@@ -156,9 +164,29 @@ public class FTPFilesystem implements Filesystem {
             dispatcher.dispatch(new CommandEvent(CommandEvent.Type.REQUEST, new Command(Command.Type.STOR, path.toString())));
 
 
-        waitForResponse(Response.Type.OPENING_PASSIVE_CONNECTION);//TODO: errors
+        Response.Type response = waitForResponse(true, Response.Type.OPENING_PASSIVE_CONNECTION);
+        parseErrors(response);
 
         return passiveConnection.getOutputStream();
+    }
+
+    private void parseErrors(Response.Type responseType, Object... params) {
+        switch (responseType){
+            case DIRECTORY_NOT_EMPTY:
+                throw new DirectoryNotEmptyException((String) params[0]);
+            case FILE_EXISTS:
+                throw new FileAlreadyExistsException((String) params[0]);
+            case ABORTED_LOCAL_ERROR:
+                throw new FilesystemException();
+            case NO_SUCH_FILE_OR_DIR:
+                throw new NoSuchFileException((String) params[0]);
+            case NOT_DIRECTORY:
+                throw new NotDirectoryException((String) params[0]);
+            case NOT_REGULAR_FILE:
+                throw new NotRegularFileException((String) params[0]);
+            case PERMISSION_DENIED:
+                throw new PermissionDeniedException();
+        }
     }
 
     @Override
@@ -191,6 +219,14 @@ public class FTPFilesystem implements Filesystem {
         }
 
         return session.getPassiveConnection();
+    }
+
+    private Response.Type waitForResponse(boolean withErrors, Response.Type... types) {
+        if(withErrors)
+            return waitForResponse(
+                Stream.concat(Arrays.stream(types), Arrays.stream(ERROR_CODES)).toArray(Response.Type[]::new));
+        else
+            return waitForResponse(types);
     }
 
     private Response.Type waitForResponse(Response.Type type) {

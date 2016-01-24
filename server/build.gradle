@@ -5,7 +5,7 @@ apply plugin: 'java'
 apply plugin: 'application'
 
 //noinspection GroovyUnusedAssignment
-mainClassName = 'pl.maxmati.po.ftp.server.Main'
+mainClassName = 'pl.maxmati.po.ftp.server.gui.GUIMain'
 //noinspection GroovyUnusedAssignment
 sourceCompatibility = 1.8
 

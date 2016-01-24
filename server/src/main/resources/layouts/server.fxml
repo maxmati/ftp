@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="pl.maxmati.po.ftp.server.gui.Controller">
+   <top>
+      <HBox prefHeight="100.0" prefWidth="200.0" BorderPane.alignment="CENTER" />
+   </top>
+   <center>
+      <Accordion BorderPane.alignment="CENTER">
+        <panes>
+          <TitledPane animated="false" text="Users">
+            <content>
+              <VBox>
+                 <children>
+                   <HBox>
+                      <children>
+                          <TextField onAction="#addUser" fx:id="userAddName" promptText="Username" HBox.hgrow="ALWAYS" />
+                          <PasswordField onAction="#addUser" fx:id="userAddPassword" promptText="Password" HBox.hgrow="ALWAYS" />
+                          <Button onAction="#addUser" mnemonicParsing="false" text="Add" />
+                      </children>
+                           <padding>
+                              <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                           </padding>
+                   </HBox>
+                   <TableView fx:id="userTable" prefHeight="200.0" prefWidth="200.0">
+                     <columns>
+                       <TableColumn fx:id="userID" prefWidth="40.0" text="id" />
+                       <TableColumn fx:id="userName" maxWidth="Infinity" prefWidth="150.0" text="username" />
+                       <TableColumn fx:id="userPassword" maxWidth="Infinity" prefWidth="150.0" text="password" />
+                     </columns>
+                   </TableView>
+                 </children>
+                     <padding>
+                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                     </padding>
+              </VBox>
+            </content>
+          </TitledPane>
+          <TitledPane animated="false" text="Groups">
+               <content>
+                  <TableView prefHeight="200.0" prefWidth="200.0">
+                    <columns>
+                      <TableColumn prefWidth="75.0" text="id" />
+                      <TableColumn prefWidth="75.0" text="name" />
+                      <TableColumn prefWidth="75.0" text="users" />
+                    </columns>
+                  </TableView>
+               </content>
+          </TitledPane>
+        </panes>
+      </Accordion>
+   </center>
+</BorderPane>

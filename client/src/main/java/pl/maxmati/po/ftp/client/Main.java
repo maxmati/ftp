@@ -37,7 +37,6 @@ public class Main extends Application {
     public void start(Stage primaryStage) {
 
 
-
         URL location = getClass().getResource("/layouts/main.fxml");
         FXMLLoader fxmlLoader = new FXMLLoader(location);
 

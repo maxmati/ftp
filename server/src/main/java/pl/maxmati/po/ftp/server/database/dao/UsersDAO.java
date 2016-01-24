@@ -5,6 +5,8 @@ import pl.maxmati.po.ftp.server.database.ConnectionPool;
 import pl.maxmati.po.ftp.server.exceptions.DatabaseException;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by maxmati on 1/6/16
@@ -24,6 +26,7 @@ public class UsersDAO {
                 "salt       = ?" +
             "WHERE id = ?";
     private static final String CREATE_USER_QUERY = "INSERT INTO users (username, password, salt) VALUES (?, ?, ?)";
+    private static final String SELECT_FROM_USERS = "SELECT * FROM `users`";
 
     private final ConnectionPool connectionPool;
 
@@ -154,5 +157,30 @@ public class UsersDAO {
         } finally {
             connectionPool.releaseConnection(con);
         }
+    }
+
+    public List<User> findUsers() {
+        List<User> results = new ArrayList<>();
+        Connection con = null;
+        try {
+            con = connectionPool.reserveConnection();
+            PreparedStatement ps = con.prepareStatement(SELECT_FROM_USERS);
+
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Integer id = rs.getInt("id");
+                String username = rs.getString("username");
+                String password = rs.getString("password");
+                String salt = rs.getString("salt");
+
+                results.add(new User(id, username, password, salt));
+            }
+
+        } catch (SQLException e) {
+            throw new DatabaseException(e);
+        } finally {
+            connectionPool.releaseConnection(con);
+        }
+        return results;
     }
 }

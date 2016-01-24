@@ -5,7 +5,9 @@ import pl.maxmati.po.ftp.server.database.dao.UsersDAO;
 
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
+import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
 import java.util.Base64;
@@ -15,6 +17,8 @@ import java.util.Base64;
  */
 public class UsersManager {
     private final UsersDAO dao;
+    private final SecureRandom random = new SecureRandom();
+
 
     public UsersManager(UsersDAO dao) {
         this.dao = dao;
@@ -47,5 +51,29 @@ public class UsersManager {
         } catch (InvalidKeySpecException | NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private String generateSalt(){
+        return new BigInteger(130, random).toString(32);
+    }
+
+    public void changePassword(User user, String password) {
+        String salt = generateSalt();
+        user.setSalt(salt);
+        user.setPassword(generatePasswordHash(password, salt));
+        dao.save(user);
+    }
+
+    public void changeName(User user, String username) {
+        user.setUsername(username);
+        dao.save(user);
+    }
+
+    public User createUser(String username, String password) {
+        String salt = generateSalt();
+        password = generatePasswordHash(password, salt);
+        User user = new User(username, password, salt);
+        dao.save(user);
+        return user;
     }
 }

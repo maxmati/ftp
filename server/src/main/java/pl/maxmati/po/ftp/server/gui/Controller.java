@@ -4,6 +4,7 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.PasswordField;
@@ -12,9 +13,11 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
+import pl.maxmati.ftp.common.beans.Group;
 import pl.maxmati.ftp.common.beans.User;
 import pl.maxmati.po.ftp.server.UsersManager;
 import pl.maxmati.po.ftp.server.database.ConnectionPool;
+import pl.maxmati.po.ftp.server.database.dao.GroupsDAO;
 import pl.maxmati.po.ftp.server.database.dao.UsersDAO;
 
 import java.net.URL;
@@ -26,6 +29,13 @@ import java.util.stream.Collectors;
  * Created by maxmati on 1/24/16
  */
 public class Controller implements Initializable{
+    @FXML private TextField groupAddName;
+    @FXML private TableView<GroupData> groupTable;
+    @FXML private TableColumn<GroupData, Integer> groupId;
+    @FXML private TableColumn<GroupData, String> groupName;
+
+    private final ObservableList<GroupData> groupData;
+
     @FXML private TextField userAddName;
     @FXML private PasswordField userAddPassword;
     @FXML private TableView<UserData> userTable;
@@ -33,19 +43,27 @@ public class Controller implements Initializable{
     @FXML private TableColumn<UserData, String> userName;
     @FXML private TableColumn<UserData, Integer> userID;
 
+    private final ObservableList<UserData> userData;
+
     private final ConnectionPool cp = new ConnectionPool();
     private final UsersDAO usersDAO = new UsersDAO(cp);
+    private final GroupsDAO groupsDAO = new GroupsDAO(cp);
+
+
     private final UsersManager usersManager = new UsersManager(usersDAO);
-
-
-    private final ObservableList<UserData> data;
 
     public Controller() {
         List<User> users = usersDAO.findUsers();
-        List<UserData> usersData = users.stream().map(UserData::new).collect(Collectors.toList());
-        data = FXCollections.observableList(usersData);
+        List<UserData> usersList = users.stream().map(UserData::new).collect(Collectors.toList());
+        userData = FXCollections.observableList(usersList);
 
         UserData.manager = usersManager;
+
+        List<Group> groups = groupsDAO.findGroups();
+        List<GroupData> groupsList = groups.stream().map(GroupData::new).collect(Collectors.toList());
+        groupData = FXCollections.observableArrayList(groupsList);
+
+        GroupData.dao = groupsDAO;
     }
 
     @Override
@@ -69,8 +87,21 @@ public class Controller implements Initializable{
         );
 
 
-        userTable.setItems(data);
+        userTable.setItems(userData);
         userTable.setEditable(true);
+
+        groupId.setCellValueFactory(new PropertyValueFactory<GroupData, Integer>("id"));
+        groupName.setCellFactory(TextFieldTableCell.forTableColumn());
+        groupName.setCellValueFactory(new PropertyValueFactory<GroupData, String>("name"));
+        groupName.setOnEditCommit(event ->
+                        event.getTableView().getItems().get(
+                                event.getTablePosition().getRow()
+                        ).setName(event.getNewValue())
+        );
+
+        groupTable.setItems(groupData);
+        groupTable.setEditable(true);
+
     }
 
     public void addUser() {
@@ -81,9 +112,54 @@ public class Controller implements Initializable{
             return;
 
         User user = usersManager.createUser(username, password);
-        data.add(new UserData(user));
+        userData.add(new UserData(user));
     }
 
+    public void addGroup() {
+        final String name = groupAddName.getText();
+
+        if(name.isEmpty())
+            return;
+
+        Group group = new Group(name);
+        groupsDAO.save(group);
+        groupData.add(new GroupData(group));
+    }
+
+    @SuppressWarnings("WeakerAccess")
+    public static class GroupData {
+        public static GroupsDAO dao;
+        private final SimpleIntegerProperty id;
+        private final SimpleStringProperty name;
+        private final Group group;
+
+        public GroupData(Group group) {
+            this.group = group;
+            id = new SimpleIntegerProperty(group.getId());
+            name = new SimpleStringProperty(group.getName());
+        }
+
+        public int getId() {
+            return id.get();
+        }
+
+
+        public void setId(int id) {
+            this.id.set(id);
+        }
+
+        public String getName() {
+            return name.get();
+        }
+
+        public void setName(String name) {
+            this.name.set(name);
+            group.setName(name);
+            dao.save(group);
+        }
+    }
+
+    @SuppressWarnings("WeakerAccess")
     public static class UserData {
         private static UsersManager manager;
         private final SimpleIntegerProperty id;

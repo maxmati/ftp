@@ -6,6 +6,7 @@ import pl.maxmati.po.ftp.server.database.ConnectionPool;
 import pl.maxmati.po.ftp.server.exceptions.DatabaseException;
 
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -25,6 +26,7 @@ public class GroupsDAO {
             "SET group_name = ? " +
             "WHERE id = ?";
     private static final String CREATE_GROUP_QUERY = "INSERT INTO groups (group_name) VALUES (?)";
+    private static final String SELECT_FROM_GROUPS = "SELECT * FROM `groups`";
 
     private final ConnectionPool connectionPool;
 
@@ -114,6 +116,7 @@ public class GroupsDAO {
             con.setAutoCommit(true);
         } catch (SQLException e) {
             try {
+                assert con != null;
                 con.rollback();
             } catch (SQLException e1) {
                 throw new DatabaseException(e1);
@@ -122,6 +125,7 @@ public class GroupsDAO {
 
         } finally {
             try {
+                assert con != null;
                 con.setAutoCommit(false);
             } catch (SQLException e) {
                 e.printStackTrace();
@@ -170,5 +174,28 @@ public class GroupsDAO {
         } finally {
             connectionPool.releaseConnection(con);
         }
+    }
+
+    public List<Group> findGroups() {
+        List<Group> results = new ArrayList<>();
+        Connection con = null;
+        try {
+            con = connectionPool.reserveConnection();
+            PreparedStatement ps = con.prepareStatement(SELECT_FROM_GROUPS);
+
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Integer id = rs.getInt("id");
+                String name = rs.getString("group_name");
+
+                results.add(new Group(id, name));
+            }
+
+        } catch (SQLException e) {
+            throw new DatabaseException(e);
+        } finally {
+            connectionPool.releaseConnection(con);
+        }
+        return results;
     }
 }

@@ -76,4 +76,8 @@ public class UsersManager {
         dao.save(user);
         return user;
     }
+
+    public void delete(User user) {
+        dao.deleteById(user.getId());
+    }
 }

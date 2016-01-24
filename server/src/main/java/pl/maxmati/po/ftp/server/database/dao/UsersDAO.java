@@ -183,4 +183,20 @@ public class UsersDAO {
         }
         return results;
     }
+
+    public void deleteById(int id) {
+        Connection con = null;
+        try {
+            con = connectionPool.reserveConnection();
+            PreparedStatement ps = con.prepareStatement("DELETE FROM `users` WHERE id = ?");
+            ps.setInt(1, id);
+
+            ps.executeUpdate();
+
+        } catch (SQLException e) {
+            throw new DatabaseException(e);
+        } finally {
+            connectionPool.releaseConnection(con);
+        }
+    }
 }

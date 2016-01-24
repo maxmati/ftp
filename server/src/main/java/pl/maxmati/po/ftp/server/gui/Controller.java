@@ -4,13 +4,9 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.PasswordField;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
 import pl.maxmati.ftp.common.beans.Group;
@@ -68,6 +64,36 @@ public class Controller implements Initializable{
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        initUserTable();
+
+        initGroupTable();
+    }
+
+    private void initGroupTable() {
+        groupId.setCellValueFactory(new PropertyValueFactory<GroupData, Integer>("id"));
+        groupName.setCellFactory(TextFieldTableCell.forTableColumn());
+        groupName.setCellValueFactory(new PropertyValueFactory<GroupData, String>("name"));
+        groupName.setOnEditCommit(event ->
+                        event.getTableView().getItems().get(
+                                event.getTablePosition().getRow()
+                        ).setName(event.getNewValue())
+        );
+
+        MenuItem groupDelete = new MenuItem("Delete");
+        groupDelete.setOnAction(event -> {
+            GroupData item = groupData.get(groupTable.getSelectionModel().getSelectedIndex());
+            if(item != null){
+                item.delete();
+                groupData.remove(item);
+            }
+        });
+
+        groupTable.setItems(groupData);
+        groupTable.setEditable(true);
+        groupTable.setContextMenu(new ContextMenu(groupDelete));
+    }
+
+    private void initUserTable() {
         userID.setCellValueFactory(new PropertyValueFactory<UserData, Integer>("id"));
 
         userName.setCellFactory(TextFieldTableCell.forTableColumn());
@@ -86,22 +112,18 @@ public class Controller implements Initializable{
                         ).setPassword(event.getNewValue())
         );
 
+        MenuItem userDelete = new MenuItem("Delete");
+        userDelete.setOnAction(event -> {
+            UserData item = userData.get(userTable.getSelectionModel().getSelectedIndex());
+            if(item != null){
+                item.delete();
+                userData.remove(item);
+            }
+        });
 
+        userTable.setContextMenu(new ContextMenu(userDelete));
         userTable.setItems(userData);
         userTable.setEditable(true);
-
-        groupId.setCellValueFactory(new PropertyValueFactory<GroupData, Integer>("id"));
-        groupName.setCellFactory(TextFieldTableCell.forTableColumn());
-        groupName.setCellValueFactory(new PropertyValueFactory<GroupData, String>("name"));
-        groupName.setOnEditCommit(event ->
-                        event.getTableView().getItems().get(
-                                event.getTablePosition().getRow()
-                        ).setName(event.getNewValue())
-        );
-
-        groupTable.setItems(groupData);
-        groupTable.setEditable(true);
-
     }
 
     public void addUser() {
@@ -157,6 +179,10 @@ public class Controller implements Initializable{
             group.setName(name);
             dao.save(group);
         }
+
+        public void delete() {
+            dao.removeById(group.getId());
+        }
     }
 
     @SuppressWarnings("WeakerAccess")
@@ -198,6 +224,10 @@ public class Controller implements Initializable{
         public void setPassword(String password) {
             this.password.set(password);
             manager.changePassword(user, password);
+        }
+
+        public void delete() {
+            manager.delete(user);
         }
     }
 }

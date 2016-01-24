@@ -198,4 +198,20 @@ public class GroupsDAO {
         }
         return results;
     }
+
+    public void removeById(int id) {
+        Connection con = null;
+        try {
+            con = connectionPool.reserveConnection();
+            PreparedStatement ps = con.prepareStatement("DELETE FROM `groups` WHERE id = ?");
+            ps.setInt(1, id);
+
+            ps.executeUpdate();
+
+        } catch (SQLException e) {
+            throw new DatabaseException(e);
+        } finally {
+            connectionPool.releaseConnection(con);
+        }
+    }
 }

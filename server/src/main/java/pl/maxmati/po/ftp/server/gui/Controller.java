@@ -176,8 +176,15 @@ public class Controller implements Initializable{
         if(username.isEmpty() || password.isEmpty())
             return;
 
+
         User user = usersManager.createUser(username, password);
         userData.add(new UserData(user));
+
+        Group group = new Group(username);
+        groupsDAO.save(group);
+        group.addMember(user);
+        groupsDAO.saveMembers(group);
+        groupData.add(new GroupData(group));
     }
 
     public void addGroup() {

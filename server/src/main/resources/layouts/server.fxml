@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.*?>
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-
 <BorderPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="pl.maxmati.po.ftp.server.gui.Controller">
     <top>
@@ -12,7 +11,40 @@
     <center>
         <Accordion BorderPane.alignment="CENTER">
             <panes>
-                <TitledPane animated="false" text="Users">
+                <TitledPane animated="false" text="Settings">
+                    <content>
+                        <GridPane>
+                            <columnConstraints>
+                                <ColumnConstraints percentWidth="50"/>
+                                <ColumnConstraints minWidth="10.0" percentWidth="50.0" prefWidth="100.0"/>
+                                <ColumnConstraints percentWidth="50"/>
+                                <ColumnConstraints minWidth="10.0" percentWidth="50.0" prefWidth="100.0"/>
+                            </columnConstraints>
+                            <rowConstraints>
+                                <RowConstraints/>
+                                <RowConstraints/>
+                                <RowConstraints minHeight="10.0" prefHeight="30.0"/>
+                                <RowConstraints minHeight="10.0" prefHeight="30.0"/>
+                                <RowConstraints minHeight="10.0" prefHeight="30.0"/>
+                                <RowConstraints/>
+                            </rowConstraints>
+                            <children>
+                                <TextField fx:id="databaseUrl" promptText="Database url" GridPane.columnSpan="4"/>
+                                <TextField fx:id="databaseLogin" promptText="Database login" GridPane.columnIndex="0"
+                                           GridPane.rowIndex="1" GridPane.columnSpan="2"/>
+                                <PasswordField fx:id="databasePass" promptText="Database password"
+                                               GridPane.columnIndex="2" GridPane.rowIndex="1" GridPane.columnSpan="2"/>
+                                <TextField fx:id="ip1" promptText="127" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+                                <TextField fx:id="ip2" promptText="0" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+                                <TextField fx:id="ip3" promptText="0" GridPane.columnIndex="2" GridPane.rowIndex="3"/>
+                                <TextField fx:id="ip4" promptText="1" GridPane.columnIndex="3" GridPane.rowIndex="3"/>
+                                <Button mnemonicParsing="false" onAction="#saveConfig" text="Save"
+                                        GridPane.columnIndex="0" GridPane.rowIndex="5"/>
+                            </children>
+                        </GridPane>
+                    </content>
+                </TitledPane>
+                <TitledPane fx:id="usersPane" animated="false" text="Users">
                     <content>
                         <VBox>
                             <children>
@@ -44,15 +76,15 @@
                         </VBox>
                     </content>
                 </TitledPane>
-                <TitledPane animated="false" text="Groups">
+                <TitledPane fx:id="groupsPane" animated="false" text="Groups">
                     <content>
                         <VBox>
                             <children>
                                 <HBox>
                                     <children>
-                                        <TextField fx:id="groupAddName" promptText="Name" HBox.hgrow="ALWAYS"
-                                                   onAction="#addGroup"/>
-                                        <Button mnemonicParsing="false" text="Add" onAction="#addGroup"/>
+                                        <TextField fx:id="groupAddName" onAction="#addGroup" promptText="Name"
+                                                   HBox.hgrow="ALWAYS"/>
+                                        <Button mnemonicParsing="false" onAction="#addGroup" text="Add"/>
                                     </children>
                                 </HBox>
                                 <TableView fx:id="groupTable" prefHeight="200.0" prefWidth="200.0" VBox.vgrow="ALWAYS">

@@ -12,12 +12,6 @@ import java.util.List;
  * Created by maxmati on 1/6/16
  */
 public class ConnectionPool {
-    @SuppressWarnings("SpellCheckingInspection")
-    private static final String DATABASE_URL = Config.getInstance().getDBUrl();// "jdbc:mysql://mysql.maxmati.pl/poftp";
-    @SuppressWarnings("SpellCheckingInspection")
-    private static final String DATABASE_USERNAME = Config.getInstance().getDBUser();//"poftp";
-    @SuppressWarnings("SpellCheckingInspection")
-    private static final String DATABASE_PASSWORD = Config.getInstance().getDBPass(); //"aarmzEjvaRYFstCE";
 
     private static final String CREATE_USERS_TABLE_QUERY =
             "CREATE TABLE IF NOT EXISTS `users` (" +
@@ -65,7 +59,7 @@ public class ConnectionPool {
         return instance;
     }
 
-    public Connection reserveConnection() throws SQLException {
+    public synchronized Connection reserveConnection() throws SQLException {
         if(freeConnection.isEmpty()){
             freeConnection.add(createConnection());
         }
@@ -75,7 +69,7 @@ public class ConnectionPool {
         return con;
     }
 
-    public void releaseConnection(Connection con){
+    public synchronized void releaseConnection(Connection con){
         if(reservedConnections.contains(con)) {
             reservedConnections.remove(con);
             freeConnection.add(con);
@@ -98,7 +92,23 @@ public class ConnectionPool {
     }
 
     private Connection createConnection() throws SQLException {
-        return DriverManager.getConnection(DATABASE_URL, DATABASE_USERNAME, DATABASE_PASSWORD);
+        Config config = Config.getInstance();
+        return DriverManager.getConnection(config.getDBUrl(), config.getDBUser(), config.getDBPass());
     }
 
+    public synchronized void clear() {
+        freeConnection.forEach(this::tryClose);
+        freeConnection.clear();
+
+        reservedConnections.forEach(this::tryClose);
+        reservedConnections.clear();
+    }
+
+    private void tryClose(Connection connection) {
+        try {
+            connection.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 }

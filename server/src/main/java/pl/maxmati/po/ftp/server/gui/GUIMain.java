@@ -8,9 +8,11 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
+import pl.maxmati.po.ftp.server.Config;
 
 import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Paths;
 
 public class GUIMain extends Application {
 
@@ -20,6 +22,7 @@ public class GUIMain extends Application {
 
     @Override
     public void start(Stage primaryStage) {
+        Config.load(Paths.get("FTPConfig.conf"));
         URL location = getClass().getResource("/layouts/server.fxml");
         FXMLLoader fxmlLoader = new FXMLLoader(location);
 

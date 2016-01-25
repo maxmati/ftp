@@ -11,11 +11,14 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
 import pl.maxmati.ftp.common.beans.Group;
 import pl.maxmati.ftp.common.beans.User;
+import pl.maxmati.po.ftp.server.Config;
 import pl.maxmati.po.ftp.server.UsersManager;
 import pl.maxmati.po.ftp.server.database.ConnectionPool;
 import pl.maxmati.po.ftp.server.database.dao.GroupsDAO;
 import pl.maxmati.po.ftp.server.database.dao.UsersDAO;
+import pl.maxmati.po.ftp.server.exceptions.DatabaseException;
 
+import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 import java.util.ResourceBundle;
@@ -25,13 +28,24 @@ import java.util.stream.Collectors;
  * Created by maxmati on 1/24/16
  */
 public class Controller implements Initializable{
+    @FXML private TextField ip1;
+    @FXML private TextField ip2;
+    @FXML private TextField ip3;
+    @FXML private TextField ip4;
+
+    @FXML private TextField databaseUrl;
+    @FXML private TextField databaseLogin;
+    @FXML private PasswordField databasePass;
+
+    @FXML private TitledPane groupsPane;
     @FXML private TextField groupAddName;
     @FXML private TableView<GroupData> groupTable;
     @FXML private TableColumn<GroupData, Integer> groupId;
     @FXML private TableColumn<GroupData, String> groupName;
 
-    private final ObservableList<GroupData> groupData;
+    private final ObservableList<GroupData> groupData = FXCollections.observableArrayList();
 
+    @FXML private TitledPane usersPane;
     @FXML private TextField userAddName;
     @FXML private PasswordField userAddPassword;
     @FXML private TableView<UserData> userTable;
@@ -39,7 +53,7 @@ public class Controller implements Initializable{
     @FXML private TableColumn<UserData, String> userName;
     @FXML private TableColumn<UserData, Integer> userID;
 
-    private final ObservableList<UserData> userData;
+    private final ObservableList<UserData> userData = FXCollections.observableArrayList();
 
     private final ConnectionPool cp = new ConnectionPool();
     private final UsersDAO usersDAO = new UsersDAO(cp);
@@ -49,24 +63,53 @@ public class Controller implements Initializable{
     private final UsersManager usersManager = new UsersManager(usersDAO);
 
     public Controller() {
-        List<User> users = usersDAO.findUsers();
-        List<UserData> usersList = users.stream().map(UserData::new).collect(Collectors.toList());
-        userData = FXCollections.observableList(usersList);
+    }
 
-        UserData.manager = usersManager;
+    private void loadGroups() {
+        try {
 
-        List<Group> groups = groupsDAO.findGroups();
-        List<GroupData> groupsList = groups.stream().map(GroupData::new).collect(Collectors.toList());
-        groupData = FXCollections.observableArrayList(groupsList);
+            List<Group> groups = groupsDAO.findGroups();
+            List<GroupData> groupsList = groups.stream().map(GroupData::new).collect(Collectors.toList());
+            groupData.addAll(groupsList);
 
-        GroupData.dao = groupsDAO;
+            GroupData.dao = groupsDAO;
+            groupsPane.setDisable(false);
+        } catch (DatabaseException e){
+            groupData.clear();
+            groupsPane.setDisable(true);
+        }
+    }
+
+    private void loadUsers() {
+        try {
+            List<User> users = usersDAO.findUsers();
+            List<UserData> usersList = users.stream().map(UserData::new).collect(Collectors.toList());
+            userData.addAll(usersList);
+
+            UserData.manager = usersManager;
+            usersPane.setDisable(false);
+        } catch (DatabaseException e){
+            userData.clear();
+            usersPane.setDisable(true);
+        }
     }
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        initUserTable();
+        loadUsers();
+        loadGroups();
 
+        initUserTable();
         initGroupTable();
+
+        Config config = Config.getInstance();
+        databaseUrl.setText(config.getDBUrl());
+        databaseLogin.setText(config.getDBUser());
+        databasePass.setText(config.getDBPass());
+        ip1.setText(String.valueOf(config.getIP1()));
+        ip2.setText(String.valueOf(config.getIP2()));
+        ip3.setText(String.valueOf(config.getIP3()));
+        ip4.setText(String.valueOf(config.getIP4()));
     }
 
     private void initGroupTable() {
@@ -146,6 +189,40 @@ public class Controller implements Initializable{
         Group group = new Group(name);
         groupsDAO.save(group);
         groupData.add(new GroupData(group));
+    }
+
+    public void saveConfig() {
+        String DBUrl = databaseUrl.getText();
+        String DBUser = databaseLogin.getText();
+        String DBPass = databasePass.getText();
+
+        String ip1 = this.ip1.getText();
+        String ip2 = this.ip2.getText();
+        String ip3 = this.ip3.getText();
+        String ip4 = this.ip4.getText();
+
+        if(DBUrl.isEmpty() || DBUser.isEmpty() || DBPass.isEmpty() ||
+                ip1.isEmpty() || ip2.isEmpty() || ip3.isEmpty() || ip4.isEmpty())
+            return;
+
+        Config config = Config.getInstance();
+        config.setDBUrl(DBUrl);
+        config.setDBUser(DBUser);
+        config.setDBPass(DBPass);
+        config.setIp1(Integer.valueOf(ip1));
+        config.setIp2(Integer.valueOf(ip2));
+        config.setIp3(Integer.valueOf(ip3));
+        config.setIp4(Integer.valueOf(ip4));
+        try {
+            config.store();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        cp.clear();
+
+        loadUsers();
+        loadGroups();
     }
 
     @SuppressWarnings("WeakerAccess")

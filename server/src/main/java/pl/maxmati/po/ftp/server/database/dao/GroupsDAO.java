@@ -135,6 +135,79 @@ public class GroupsDAO {
         }
     }
 
+    public List<Group> findGroups() {
+        List<Group> results = new ArrayList<>();
+        Connection con = null;
+        try {
+            con = connectionPool.reserveConnection();
+            PreparedStatement ps = con.prepareStatement(SELECT_FROM_GROUPS);
+
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Integer id = rs.getInt("id");
+                String name = rs.getString("group_name");
+
+                results.add(new Group(id, name));
+            }
+
+        } catch (SQLException e) {
+            throw new DatabaseException(e);
+        } finally {
+            connectionPool.releaseConnection(con);
+        }
+        return results;
+    }
+
+    public void removeById(int id) {
+        Connection con = null;
+        try {
+            con = connectionPool.reserveConnection();
+            PreparedStatement ps = con.prepareStatement("DELETE FROM `groups` WHERE id = ?");
+            ps.setInt(1, id);
+
+            ps.executeUpdate();
+
+        } catch (SQLException e) {
+            throw new DatabaseException(e);
+        } finally {
+            connectionPool.releaseConnection(con);
+        }
+    }
+
+    public void removeUserFromGroup(int userId, int groupId) {
+        Connection con = null;
+        try {
+            con = connectionPool.reserveConnection();
+            PreparedStatement ps = con.prepareStatement("DELETE FROM `user_group` WHERE user_id = ? AND group_id = ?");
+            ps.setInt(1, userId);
+            ps.setInt(2, groupId);
+
+            ps.executeUpdate();
+
+        } catch (SQLException e) {
+            throw new DatabaseException(e);
+        } finally {
+            connectionPool.releaseConnection(con);
+        }
+    }
+
+    public void addUserToGroup(int userId, int groupId) {
+        Connection con = null;
+        try {
+            con = connectionPool.reserveConnection();
+            PreparedStatement ps = con.prepareStatement("INSERT INTO user_group (user_id, group_id) VALUES (?, ?)");
+            ps.setInt(1, userId);
+            ps.setInt(2, groupId);
+
+            ps.executeUpdate();
+
+        } catch (SQLException e) {
+            throw new DatabaseException(e);
+        } finally {
+            connectionPool.releaseConnection(con);
+        }
+    }
+
     private void update(Group group) {
         Connection con = null;
         try {
@@ -168,45 +241,6 @@ public class GroupsDAO {
             } else {
                 throw new DatabaseException("Failed to create user: " + group);
             }
-
-        } catch (SQLException e) {
-            throw new DatabaseException(e);
-        } finally {
-            connectionPool.releaseConnection(con);
-        }
-    }
-
-    public List<Group> findGroups() {
-        List<Group> results = new ArrayList<>();
-        Connection con = null;
-        try {
-            con = connectionPool.reserveConnection();
-            PreparedStatement ps = con.prepareStatement(SELECT_FROM_GROUPS);
-
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                Integer id = rs.getInt("id");
-                String name = rs.getString("group_name");
-
-                results.add(new Group(id, name));
-            }
-
-        } catch (SQLException e) {
-            throw new DatabaseException(e);
-        } finally {
-            connectionPool.releaseConnection(con);
-        }
-        return results;
-    }
-
-    public void removeById(int id) {
-        Connection con = null;
-        try {
-            con = connectionPool.reserveConnection();
-            PreparedStatement ps = con.prepareStatement("DELETE FROM `groups` WHERE id = ?");
-            ps.setInt(1, id);
-
-            ps.executeUpdate();
 
         } catch (SQLException e) {
             throw new DatabaseException(e);

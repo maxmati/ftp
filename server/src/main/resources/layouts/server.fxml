@@ -31,9 +31,9 @@
                             <children>
                                 <TextField fx:id="databaseUrl" promptText="Database url" GridPane.columnSpan="4"/>
                                 <TextField fx:id="databaseLogin" promptText="Database login" GridPane.columnIndex="0"
-                                           GridPane.rowIndex="1" GridPane.columnSpan="2"/>
+                                           GridPane.columnSpan="2" GridPane.rowIndex="1"/>
                                 <PasswordField fx:id="databasePass" promptText="Database password"
-                                               GridPane.columnIndex="2" GridPane.rowIndex="1" GridPane.columnSpan="2"/>
+                                               GridPane.columnIndex="2" GridPane.columnSpan="2" GridPane.rowIndex="1"/>
                                 <TextField fx:id="ip1" promptText="127" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
                                 <TextField fx:id="ip2" promptText="0" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
                                 <TextField fx:id="ip3" promptText="0" GridPane.columnIndex="2" GridPane.rowIndex="3"/>
@@ -91,6 +91,33 @@
                                     <columns>
                                         <TableColumn fx:id="groupId" prefWidth="75.0" text="id"/>
                                         <TableColumn fx:id="groupName" prefWidth="200" text="name"/>
+                                    </columns>
+                                </TableView>
+                            </children>
+                            <padding>
+                                <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+                            </padding>
+                        </VBox>
+                    </content>
+                </TitledPane>
+                <TitledPane fx:id="usersGroupsPane" animated="false" text="Users and groups">
+                    <content>
+                        <VBox>
+                            <children>
+                                <HBox>
+                                    <children>
+                                        <ComboBox fx:id="userGroupAddUser" editable="true" prefWidth="150.0"
+                                                  promptText="User" HBox.hgrow="ALWAYS"/>
+                                        <ComboBox fx:id="userGroupAddGroup" editable="true" prefWidth="150.0"
+                                                  promptText="Group" HBox.hgrow="ALWAYS"/>
+                                        <Button mnemonicParsing="false" onAction="#addUserGroup" text="Add"/>
+                                    </children>
+                                </HBox>
+                                <TableView fx:id="userGroupTable" prefHeight="200.0" prefWidth="200.0"
+                                           VBox.vgrow="ALWAYS">
+                                    <columns>
+                                        <TableColumn fx:id="userGroupUser" prefWidth="200" text="username"/>
+                                        <TableColumn fx:id="userGroupGroup" prefWidth="200" text="group"/>
                                     </columns>
                                 </TableView>
                             </children>

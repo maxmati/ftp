@@ -37,13 +37,13 @@
          </padding>
       </HBox>
       <TextArea fx:id="commandChannelHistory" prefHeight="200.0" prefWidth="200.0" VBox.vgrow="SOMETIMES" />
-      <TextField fx:id="rawFTPCommand" onAction="#sendRawCommand" promptText="Raw FTP command" />
+      <TextField fx:id="rawFTPCommand" onAction="#sendRawCommand" promptText="Raw FTP command" disable="true"/>
       <HBox prefHeight="400.0" prefWidth="400.0" VBox.vgrow="ALWAYS">
          <children>
             <FilesystemTree fx:id="localTree" prefHeight="400.0" prefWidth="400.0" HBox.hgrow="ALWAYS" />
             <FilesystemTree fx:id="remoteTree" prefHeight="400.0" prefWidth="400.0" HBox.hgrow="ALWAYS" />
          </children>
       </HBox>
-      <TextField />
+      <TextField fx:id="FTPCommand" onAction="#onFTPCommand" promptText="Enter meta command" disable="true" />
    </children>
 </VBox>

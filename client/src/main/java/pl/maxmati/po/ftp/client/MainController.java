@@ -1,11 +1,11 @@
 package pl.maxmati.po.ftp.client;
 
 import javafx.application.Platform;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import pl.maxmati.ftp.common.command.Command;
+import pl.maxmati.ftp.common.exceptions.FilesystemException;
 import pl.maxmati.ftp.common.filesystem.Filesystem;
 import pl.maxmati.po.ftp.client.events.*;
 import pl.maxmati.po.ftp.client.widgets.filesystemTree.FilesystemTree;
@@ -21,6 +21,7 @@ import java.util.concurrent.ExecutorService;
 public class MainController implements Initializable {
     private ExecutorService executor = null;
     private EventDispatcher dispatcher = null;
+    private MetaCommandExecutor commandExecutor = null;
 
     @FXML private TextArea commandChannelHistory;
     @FXML private TextField serverUsername;
@@ -28,6 +29,7 @@ public class MainController implements Initializable {
 
     @FXML private TextField serverAddress;
 
+    @FXML private TextField FTPCommand;
 
     @FXML private TextField serverPort;
     @FXML private TextField rawFTPCommand;
@@ -53,6 +55,10 @@ public class MainController implements Initializable {
 
     public void setRemoteFilesystem(Filesystem filesystem) {
         remoteTree.init(filesystem, executor);
+    }
+
+    public void setMetaCommandExecutor(MetaCommandExecutor commandExecutor){
+        this.commandExecutor = commandExecutor;
     }
 
     public void setEventDispatcher(EventDispatcher dispatcher){
@@ -91,6 +97,8 @@ public class MainController implements Initializable {
                     serverPort.setDisable(true);
                     break;
                 case CONNECTED:
+                    rawFTPCommand.setDisable(false);
+                    FTPCommand.setDisable(false);
                     connectButton.setDisable(false);
                     connectButton.setText("Disconnect");
                     connected = true;
@@ -105,6 +113,8 @@ public class MainController implements Initializable {
                 case ERROR_UNABLE_CONNECT:
                     showError("Unable to connect", "Program was unable to connect with FTP server");
                 case DISCONNECTED:
+                    rawFTPCommand.setDisable(true);
+                    FTPCommand.setDisable(true);
                     connectButton.setDisable(false);
                     connectButton.setText("Connect");
                     serverUsername.setDisable(false);
@@ -147,7 +157,7 @@ public class MainController implements Initializable {
             dispatcher.dispatch(new ConnectEvent(ConnectEvent.Type.REQUEST_DISCONNECT));
     }
 
-    public void sendRawCommand(ActionEvent actionEvent) {
+    public void sendRawCommand() {
         final String[] tokens = rawFTPCommand.getText().split(" ");
         try {
             final Command.Type type = Command.Type.valueOf(tokens[0]);
@@ -157,5 +167,21 @@ public class MainController implements Initializable {
         } catch (IllegalArgumentException e){
             e.printStackTrace();
         }
+    }
+
+    public void onFTPCommand() {
+        String command = FTPCommand.getText();
+        if(command.isEmpty())
+            return;
+
+        executor.execute(() -> {
+            try {
+                commandExecutor.executeCommand(command);
+            } catch (FilesystemException e) {
+                Platform.runLater(() -> Dialogs.showErrorDialog(e) );
+            }
+        });
+        FTPCommand.clear();
+
     }
 }

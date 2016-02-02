@@ -136,6 +136,9 @@ public class LocalFilesystem implements Filesystem {
         path = prependRoot(path);
 
         try {
+            if(!Files.exists(path))
+                throw new NoSuchFileException(path.toString());
+
             if(!Files.isReadable(path))
                 throw new PermissionDeniedException();
 

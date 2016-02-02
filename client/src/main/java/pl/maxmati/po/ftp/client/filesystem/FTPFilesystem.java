@@ -58,8 +58,9 @@ public class FTPFilesystem implements Filesystem {
 
         ClientPassiveConnection passiveConnection = acquireClientPassiveConnection();
 
+        initWaitForResponse(Response.Type.OPENING_PASSIVE_CONNECTION);
         dispatcher.dispatch(new CommandEvent(CommandEvent.Type.REQUEST, new Command(Command.Type.NLST)));
-        waitForResponse(Response.Type.OPENING_PASSIVE_CONNECTION);
+        waitForResponse();
 
         String files = passiveConnection.readAll().collect(Collectors.joining("\n"));
 
@@ -81,12 +82,13 @@ public class FTPFilesystem implements Filesystem {
 
         ClientPassiveConnection passiveConnection = acquireClientPassiveConnection();
 
+        initWaitForResponse(Response.Type.OPENING_PASSIVE_CONNECTION);
         dispatcher.dispatch(new CommandEvent(CommandEvent.Type.REQUEST, new Command(Command.Type.NLST)));
-        waitForResponse(Response.Type.OPENING_PASSIVE_CONNECTION);
+        waitForResponse();
 
+        initWaitForResponse(Response.Type.TRANSFER_COMPLETE);
         List<Path> files = passiveConnection.readAll().filter(s -> !s.isEmpty()).map(path::resolve).collect(Collectors.toList());
-
-        waitForResponse(Response.Type.TRANSFER_COMPLETE);
+        waitForResponse();
 
         if(!path.equals(currentCwd))
             changeDirectory(currentCwd);
@@ -114,9 +116,11 @@ public class FTPFilesystem implements Filesystem {
 
         System.out.println("Creating directory: " + path);
 
+        initWaitForResponse(true, Response.Type.CREATED_DIRECTORY);
         dispatcher.dispatch(new CommandEvent(CommandEvent.Type.REQUEST, new Command(Command.Type.MKD, path.toString())));
 
-        waitForResponse(true, Response.Type.CREATED_DIRECTORY); //TODO: errors
+        final Response.Type response = waitForResponse();
+        parseErrors(response, path.toString());
     }
 
     @Override
@@ -125,12 +129,13 @@ public class FTPFilesystem implements Filesystem {
 
         System.out.println("Removing: " + path);
 
+        initWaitForResponse(true, Response.Type.REQUEST_COMPLETED);
         if(directory)
             dispatcher.dispatch(new CommandEvent(CommandEvent.Type.REQUEST, new Command(Command.Type.RMD, path.toString())));
         else
             dispatcher.dispatch(new CommandEvent(CommandEvent.Type.REQUEST, new Command(Command.Type.DELE, path.toString())));
 
-        Response.Type response = waitForResponse(true, Response.Type.REQUEST_COMPLETED);
+        Response.Type response = waitForResponse();
         parseErrors(response, path.toString());
 
     }
@@ -143,9 +148,12 @@ public class FTPFilesystem implements Filesystem {
 
         ClientPassiveConnection passiveConnection = acquireClientPassiveConnection();
 
+        initWaitForResponse(true, Response.Type.OPENING_PASSIVE_CONNECTION);
         dispatcher.dispatch(new CommandEvent(CommandEvent.Type.REQUEST, new Command(Command.Type.RETR, path.toString())));
 
-        waitForResponse(Response.Type.OPENING_PASSIVE_CONNECTION);//TODO: errors
+        final Response.Type response = waitForResponse();
+        System.out.println("!!!Filesystem received response: " + response);
+        parseErrors(response, path.toString());
 
         return passiveConnection.getInputStream();
     }
@@ -158,14 +166,15 @@ public class FTPFilesystem implements Filesystem {
 
         ClientPassiveConnection passiveConnection = acquireClientPassiveConnection();
 
+        initWaitForResponse(true, Response.Type.OPENING_PASSIVE_CONNECTION);
         if(append)
             dispatcher.dispatch(new CommandEvent(CommandEvent.Type.REQUEST, new Command(Command.Type.APPE, path.toString())));
         else
             dispatcher.dispatch(new CommandEvent(CommandEvent.Type.REQUEST, new Command(Command.Type.STOR, path.toString())));
 
 
-        Response.Type response = waitForResponse(true, Response.Type.OPENING_PASSIVE_CONNECTION);
-        parseErrors(response);
+        Response.Type response = waitForResponse();
+        parseErrors(response, path.toString());
 
         return passiveConnection.getOutputStream();
     }
@@ -193,8 +202,9 @@ public class FTPFilesystem implements Filesystem {
     public synchronized void changeDirectory(Path path) {
         waitForInitialization();
 
+        initWaitForResponse(Response.Type.REQUEST_COMPLETED, Response.Type.NO_SUCH_FILE_OR_DIR); //TODO: param
         dispatcher.dispatch(new CommandEvent(CommandEvent.Type.REQUEST, new Command(Command.Type.CWD, path.toString())));
-        switch (waitForResponse(Response.Type.REQUEST_COMPLETED, Response.Type.NO_SUCH_FILE_OR_DIR)){ //TODO: param
+        switch (waitForResponse()){
             case NO_SUCH_FILE_OR_DIR:
                 throw new NoSuchFileException(path.toString());
         }
@@ -214,28 +224,28 @@ public class FTPFilesystem implements Filesystem {
 
     private ClientPassiveConnection acquireClientPassiveConnection() {
         if(!session.havePassiveConnection()) {
+            initWaitForResponse(Response.Type.ENTERING_PASSIVE_MODE);
             dispatcher.dispatch(new CommandEvent(CommandEvent.Type.REQUEST, new Command(Command.Type.PASV)));
-            waitForResponse(Response.Type.ENTERING_PASSIVE_MODE);
+            waitForResponse();
         }
 
         return session.getPassiveConnection();
     }
 
-    private Response.Type waitForResponse(boolean withErrors, Response.Type... types) {
+    private void initWaitForResponse(boolean withErrors, Response.Type... types) {
         if(withErrors)
-            return waitForResponse(
-                Stream.concat(Arrays.stream(types), Arrays.stream(ERROR_CODES)).toArray(Response.Type[]::new));
+            initWaitForResponse(
+                    Stream.concat(Arrays.stream(types), Arrays.stream(ERROR_CODES)).toArray(Response.Type[]::new));
         else
-            return waitForResponse(types);
+            initWaitForResponse(types);
     }
 
-    private Response.Type waitForResponse(Response.Type type) {
-        return waitForResponse(new Response.Type[]{type});
+    private void initWaitForResponse(Response.Type... types) {
+        waitingForResponse = Arrays.asList(types);
     }
 
-    private Response.Type waitForResponse(Response.Type... type) {
+    private Response.Type waitForResponse() {
         synchronized (waitingForResponseLock) {
-            waitingForResponse = Arrays.asList(type);
             while (waitingForResponse.size() != 0)
                 try {
                     waitingForResponseLock.wait();
@@ -274,8 +284,9 @@ public class FTPFilesystem implements Filesystem {
 
     private void initialize() {
         synchronized (this) {
+            initWaitForResponse(Response.Type.CURRENT_DIRECTORY);
             dispatcher.dispatch(new CommandEvent(CommandEvent.Type.REQUEST, new Command(Command.Type.PWD)));
-            waitForResponse(Response.Type.CURRENT_DIRECTORY);
+            waitForResponse();
             initialized = true;
             this.notifyAll();
         }

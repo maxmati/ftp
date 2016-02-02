@@ -45,8 +45,10 @@ public class Main extends Application {
 
             MainController mainController = fxmlLoader.getController();
             mainController.setExecutor(executor);
-            mainController.setLocalFilesystem(new LocalFilesystem(Paths.get("/home/maxmati")));
+            final LocalFilesystem localFilesystem = new LocalFilesystem(Paths.get("/home/maxmati"));
+            mainController.setLocalFilesystem(localFilesystem);
             mainController.setEventDispatcher(eventDispatcher);
+            mainController.setMetaCommandExecutor(new MetaCommandExecutor(localFilesystem, ftpFilesystem));
 
             primaryStage.setScene(new Scene(root));
             primaryStage.show();

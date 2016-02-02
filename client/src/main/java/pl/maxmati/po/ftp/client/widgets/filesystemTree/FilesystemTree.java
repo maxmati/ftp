@@ -7,8 +7,9 @@ import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.paint.Color;
-import pl.maxmati.ftp.common.exceptions.*;
+import pl.maxmati.ftp.common.exceptions.FilesystemException;
 import pl.maxmati.ftp.common.filesystem.Filesystem;
+import pl.maxmati.po.ftp.client.Dialogs;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -91,7 +92,7 @@ public class FilesystemTree extends TreeView<FileEntry>{
                     filesystem.remove(getTreeItem().getValue().getPath(), false);
                     refresh(filesystem, getTreeItem().getParent());
                 } catch (FilesystemException e){
-                    showErrorDialog(e);
+                    Dialogs.showErrorDialog(e);
                 }
             });
             fileMenu.getItems().add(removeFile);
@@ -102,7 +103,7 @@ public class FilesystemTree extends TreeView<FileEntry>{
                     filesystem.remove(getTreeItem().getValue().getPath(), true);
                     refresh(filesystem, getTreeItem().getParent());
                 } catch (FilesystemException e){
-                    showErrorDialog(e);
+                    Dialogs.showErrorDialog(e);
                 }
             });
             dirMenu.getItems().add(removeDir);
@@ -121,7 +122,7 @@ public class FilesystemTree extends TreeView<FileEntry>{
                         refresh(filesystem, getTreeItem());
                         getTreeItem().setExpanded(true);
                     } catch (FilesystemException e){
-                        showErrorDialog(e);
+                        Dialogs.showErrorDialog(e);
                     }
                 }
             });
@@ -211,7 +212,7 @@ public class FilesystemTree extends TreeView<FileEntry>{
                         refresh(dstT.filesystem, dstItem);
                     });
                 } catch (FilesystemException e){
-                    showErrorDialog(e);
+                    Dialogs.showErrorDialog(e);
                 }
 
                 event.setDropCompleted(true);
@@ -239,28 +240,5 @@ public class FilesystemTree extends TreeView<FileEntry>{
                 setText(null);
             }
         }
-    }
-
-    private void showErrorDialog(FilesystemException e) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("Error");
-        alert.setHeaderText("Error processing your request");
-        if(e instanceof DirectoryNotEmptyException){
-            alert.setContentText("Specified directory isn't empty.");
-        } else if( e instanceof FileAlreadyExistsException) {
-            alert.setContentText("Specified file already exists.");
-        } else if( e instanceof NoSuchFileException ) {
-            alert.setContentText("File not found");
-        } else if( e instanceof NotDirectoryException ) {
-            alert.setContentText("Specified file isn't directory");
-        } else if( e instanceof NotRegularFileException ) {
-            alert.setContentText("specified file isn't a regular file");
-        } else if( e instanceof PermissionDeniedException ) {
-            alert.setContentText("You don't have permissions to access this file or directory.");
-        } else {
-            alert.setContentText("Something went wrong.");
-        }
-
-        alert.show();
     }
 }

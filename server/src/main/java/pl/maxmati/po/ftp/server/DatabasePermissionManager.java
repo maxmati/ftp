@@ -48,6 +48,26 @@ public class DatabasePermissionManager implements PermissionManager {
         filesDAO.removeFileEntry(path.toString());
     }
 
+    @Override
+    public void setPermissions(Path path, boolean userCanRead, boolean userCanWrite, boolean groupCanRead, boolean groupCanWrite) {
+        File file = filesDAO.findByFilename(path.toString());
+        if(file == null)
+            return;
+
+        file.setOwnerCanRead(userCanRead);
+        file.setOwnerCanWrite(userCanWrite);
+        file.setGroupCanRead(groupCanRead);
+        file.setGroupCanWrite(groupCanWrite);
+
+        filesDAO.save(file);
+    }
+
+    @Override
+    public boolean isOwner(Path path) {
+        File file = filesDAO.findByFilename(path.toString());
+        return file != null && file.getOwner().equals(user);
+    }
+
     private boolean havePermission(Path path, boolean write) {
         File file = filesDAO.findByFilename(path.toString());
         if(file == null)

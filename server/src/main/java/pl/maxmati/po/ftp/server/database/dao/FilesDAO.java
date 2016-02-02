@@ -15,6 +15,18 @@ import java.sql.SQLException;
  * Created by maxmati on 1/12/16
  */
 public class FilesDAO {
+    private static final String UPDATE_FILES_QUERY =
+            "UPDATE `files` " +
+            "SET " +
+                    "`filename` = ?, " +
+                    "`owner_id` = ?, " +
+                    "`group_id` = ?, " +
+                    "`user_read` = ?, " +
+                    "`user_write` = ?, " +
+                    "`group_read` = ?, " +
+                    "`group_write` = ? " +
+            "WHERE `id` = ?;";
+    
     private final ConnectionPool connectionPool;
     private final UsersDAO usersDAO;
     private final GroupsDAO groupsDAO;
@@ -99,6 +111,29 @@ public class FilesDAO {
             con = connectionPool.reserveConnection();
             PreparedStatement ps = con.prepareStatement("DELETE FROM files WHERE filename = ?");
             ps.setString(1, filename);
+
+            ps.executeUpdate();
+
+        } catch (SQLException e) {
+            throw new DatabaseException(e);
+        } finally {
+            connectionPool.releaseConnection(con);
+        }
+    }
+
+    public void save(File file) {
+        Connection con = null;
+        try {
+            con = connectionPool.reserveConnection();
+            PreparedStatement ps = con.prepareStatement(UPDATE_FILES_QUERY);
+            ps.setString(1, file.getFilename());
+            ps.setInt(2, file.getOwner().getId());
+            ps.setInt(3, file.getGroup().getId());
+            ps.setBoolean(4, file.isOwnerCanRead());
+            ps.setBoolean(5, file.isOwnerCanWrite());
+            ps.setBoolean(6, file.isGroupCanRead());
+            ps.setBoolean(7, file.isGroupCanWrite());
+            ps.setInt(8, file.getId());
 
             ps.executeUpdate();
 

@@ -19,4 +19,8 @@ public interface PermissionManager {
     void addFileEntry(Path path);
 
     void removeFileEntry(Path path);
+
+    void setPermissions(Path path, boolean userCanRead, boolean userCanWrite, boolean groupCanRead, boolean groupCanWrite);
+
+    boolean isOwner(Path path);
 }

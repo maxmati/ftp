@@ -222,6 +222,19 @@ public class LocalFilesystem implements Filesystem {
         return "local";
     }
 
+
+    @Override
+    public void setPermissions(Path path, boolean userCanRead, boolean userCanWrite, boolean groupCanRead, boolean groupCanWrite) {
+        if(permissionManager == null) return;
+        path = resolveIfRelative(path);
+        path = prependRoot(path);
+
+        if(!permissionManager.isOwner(path))
+            throw new PermissionDeniedException();
+
+        permissionManager.setPermissions(path, userCanRead, userCanWrite, groupCanRead, groupCanWrite);
+    }
+
     private Path resolveIfRelative(Path path) {
         if(!path.isAbsolute())
             path = cwd.resolve(path);

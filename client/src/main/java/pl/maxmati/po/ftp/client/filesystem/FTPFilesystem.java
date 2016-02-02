@@ -222,6 +222,11 @@ public class FTPFilesystem implements Filesystem {
         return "ftp";
     }
 
+    @Override
+    public void setPermissions(Path path, boolean userCanRead, boolean userCanWrite, boolean groupCanRead, boolean groupCanWrite) {
+        //TODO:
+    }
+
     private ClientPassiveConnection acquireClientPassiveConnection() {
         if(!session.havePassiveConnection()) {
             initWaitForResponse(Response.Type.ENTERING_PASSIVE_MODE);

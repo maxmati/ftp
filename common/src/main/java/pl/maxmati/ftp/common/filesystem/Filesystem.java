@@ -29,4 +29,7 @@ public interface Filesystem {
     Path getCWD();
 
     String getID();
+
+    void setPermissions(Path path, boolean userCanRead, boolean userCanWrite,
+                        boolean groupCanRead, boolean groupCanWrite);
 }

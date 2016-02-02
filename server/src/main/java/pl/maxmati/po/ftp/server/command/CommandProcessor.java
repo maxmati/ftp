@@ -88,10 +88,28 @@ public class CommandProcessor {
                 aborted = true;
                 session.sendResponse(Response.Type.CLOSING_DATA_CONNECTION);
                 break;
+            case CHMOD:
+                setPermissions(command.getParam(0), command.getParam(1));
+                break;
             case NONE:
                 session.sendResponse(Response.Type.NOT_IMPLEMENTED);
                 break;
         }
+    }
+
+    private void setPermissions(String filename, String mods) {
+        int user = Character.getNumericValue(mods.charAt(0));
+        int group = Character.getNumericValue(mods.charAt(1));
+
+        boolean userCanRead = (user & 0x1) != 0;
+        boolean userCanWrite = (user & 0x2) != 0;
+
+        boolean groupCanRead = (group & 0x1) != 0;
+        boolean groupCanWrite = (group & 0x2) != 0;
+
+        filesystem.setPermissions(Paths.get(filename), userCanRead, userCanWrite, groupCanRead, groupCanWrite);
+
+        session.sendResponse(Response.Type.COMMAND_SUCCESSFUL);
     }
 
     private void machineList(Session session) {

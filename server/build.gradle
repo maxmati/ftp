@@ -5,10 +5,21 @@ apply plugin: 'java'
 apply plugin: 'application'
 
 //noinspection GroovyUnusedAssignment
-mainClassName = 'pl.maxmati.po.ftp.server.gui.GUIMain'
+mainClassName = 'pl.maxmati.po.ftp.server.Main'
 //noinspection GroovyUnusedAssignment
 sourceCompatibility = 1.8
 
+task guiStartScript(type: CreateStartScripts) {
+    classpath = startScripts.classpath
+    outputDir = startScripts.outputDir
+    mainClassName = 'pl.maxmati.po.ftp.server.gui.GUIMain'
+    applicationName = 'serverGUI'
+}
+
+applicationDistribution.into("bin") {
+    from(guiStartScript)
+    fileMode = 0755
+}
 repositories {
     mavenCentral()
 }

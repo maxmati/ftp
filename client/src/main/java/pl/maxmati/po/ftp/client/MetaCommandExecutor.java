@@ -1,7 +1,7 @@
 package pl.maxmati.po.ftp.client;
 
-import pl.maxmati.ftp.common.filesystem.LocalFilesystem;
 import pl.maxmati.po.ftp.client.filesystem.FTPFilesystem;
+import pl.maxmati.po.ftp.common.filesystem.LocalFilesystem;
 
 import java.io.IOException;
 import java.io.InputStream;

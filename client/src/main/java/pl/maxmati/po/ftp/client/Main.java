@@ -9,11 +9,11 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
-import pl.maxmati.ftp.common.filesystem.LocalFilesystem;
 import pl.maxmati.po.ftp.client.events.ConnectEvent;
 import pl.maxmati.po.ftp.client.events.EventDispatcher;
 import pl.maxmati.po.ftp.client.filesystem.FTPFilesystem;
 import pl.maxmati.po.ftp.client.network.ConnectionManager;
+import pl.maxmati.po.ftp.common.filesystem.LocalFilesystem;
 
 import java.io.IOException;
 import java.net.URL;

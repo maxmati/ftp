@@ -1,6 +1,6 @@
 package pl.maxmati.po.ftp.server.network;
 
-import pl.maxmati.po.ftp.server.session.Session;
+import pl.maxmati.po.ftp.server.session.SessionInterface;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -13,15 +13,15 @@ import java.util.concurrent.ExecutorService;
 /**
  * Created by maxmati on 1/8/16
  */
-public class PassiveConnection{
+public class PassiveConnection implements PassiveConnectionInterface {
     private final ServerSocket serverSocket;
-    private final Session session;
+    private final SessionInterface sessionInterface;
     private final ExecutorService executor;
     private Socket socket = null;
 
-    public PassiveConnection(Session session, ExecutorService executor) {
+    public PassiveConnection(SessionInterface sessionInterface, ExecutorService executor) {
         this.executor = executor;
-        this.session = session;
+        this.sessionInterface = sessionInterface;
         try {
             this.serverSocket = new ServerSocket(0);
         } catch (IOException e) {
@@ -31,6 +31,7 @@ public class PassiveConnection{
         startAccepting();
     }
 
+    @Override
     public void sendData(String data){
         executor.submit(() -> {
             waitForConnection();
@@ -39,15 +40,16 @@ public class PassiveConnection{
                 PrintStream stream = new PrintStream(socket.getOutputStream());
                 stream.print(data);
                 stream.close();
-                session.dataSent(true);
+                sessionInterface.dataSent(true);
             } catch (Exception e) {
                 e.printStackTrace();
-                session.dataSent(false);
+                sessionInterface.dataSent(false);
             }
         });
 
     }
 
+    @Override
     public void receiveData(OutputStream out) {
         executor.submit(() -> {
             waitForConnection();
@@ -55,15 +57,16 @@ public class PassiveConnection{
             try(InputStream in = socket.getInputStream()) {
                 pipeStream(in, out);
                 out.close();
-                session.dataSent(true);
+                sessionInterface.dataSent(true);
             } catch (Exception e) {
-                session.dataSent(false);
+                sessionInterface.dataSent(false);
                 e.printStackTrace();
             }
 
         });
     }
 
+    @Override
     public void sendData(InputStream in) {
         executor.submit(() -> {
             waitForConnection();
@@ -71,9 +74,9 @@ public class PassiveConnection{
             try(OutputStream out = socket.getOutputStream()) {
                 pipeStream(in, out);
                 in.close();
-                session.dataSent(true);
+                sessionInterface.dataSent(true);
             } catch (Exception e) {
-                session.dataSent(false);
+                sessionInterface.dataSent(false);
                 e.printStackTrace();
             }
         });
@@ -118,10 +121,12 @@ public class PassiveConnection{
         }
     }
 
+    @Override
     public int getPort() {
         return serverSocket.getLocalPort();
     }
 
+    @Override
     public boolean abort() {
         if(socket != null) {
             try {

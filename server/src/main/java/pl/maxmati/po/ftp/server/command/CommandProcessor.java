@@ -1,11 +1,11 @@
 package pl.maxmati.po.ftp.server.command;
 
-import pl.maxmati.ftp.common.Response;
-import pl.maxmati.ftp.common.command.Command;
-import pl.maxmati.ftp.common.exceptions.FilesystemException;
-import pl.maxmati.ftp.common.exceptions.PermissionDeniedException;
-import pl.maxmati.ftp.common.filesystem.Filesystem;
-import pl.maxmati.po.ftp.server.session.Session;
+import pl.maxmati.po.ftp.common.Response;
+import pl.maxmati.po.ftp.common.command.Command;
+import pl.maxmati.po.ftp.common.exceptions.FilesystemException;
+import pl.maxmati.po.ftp.common.exceptions.PermissionDeniedException;
+import pl.maxmati.po.ftp.common.filesystem.Filesystem;
+import pl.maxmati.po.ftp.server.session.SessionInterface;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -17,82 +17,82 @@ import java.util.List;
  * Created by maxmati on 1/12/16
  */
 public class CommandProcessor {
-    private final Session session;
+    private final SessionInterface sessionInterface;
     private final Filesystem filesystem;
     private static final List<Command.Type> WITHOUT_AUTH_COMMAND_TYPES =
             Arrays.asList(Command.Type.USER, Command.Type.PASS);
     private boolean aborted = false;
 
-    public CommandProcessor(Session session, Filesystem filesystem) {
-        this.session = session;
+    public CommandProcessor(SessionInterface sessionInterface, Filesystem filesystem) {
+        this.sessionInterface = sessionInterface;
         this.filesystem = filesystem;
     }
 
     public void processCommand(Command command) {
         if(!command.hasValidNumberOfArgs()) {
             System.out.println("Syntax error in command: " + command + ". Invalid number of args");
-            session.sendResponse(Response.Type.SYNTAX_ERROR);
+            sessionInterface.sendResponse(Response.Type.SYNTAX_ERROR);
             return;
         }
 
-        if( !session.isAuthenticated() && !WITHOUT_AUTH_COMMAND_TYPES.contains(command.getType()) ){
-            session.sendResponse(Response.Type.BAD_SEQUENCE_OF_COMMANDS);
+        if( !sessionInterface.isAuthenticated() && !WITHOUT_AUTH_COMMAND_TYPES.contains(command.getType()) ){
+            sessionInterface.sendResponse(Response.Type.BAD_SEQUENCE_OF_COMMANDS);
             return;
         }
 
         switch (command.getType()){
             case USER:
-                session.fetchUser(command.getParam(0));
+                sessionInterface.fetchUser(command.getParam(0));
                 break;
             case PASS:
-                session.validatePassword(command.getParam(0));
+                sessionInterface.validatePassword(command.getParam(0));
                 break;
             case QUIT:
-                session.quit();
+                sessionInterface.quit();
                 break;
             case NOOP:
-                session.sendResponse(Response.Type.COMMAND_SUCCESSFUL);
+                sessionInterface.sendResponse(Response.Type.COMMAND_SUCCESSFUL);
                 break;
             case PASV:
-                session.listenForPassiveConnection();
+                sessionInterface.listenForPassiveConnection();
                 break;
             case NLST:
-                machineList(session);
+                machineList(sessionInterface);
                 break;
             case PWD:
-                sendWorkingDirectory(session);
+                sendWorkingDirectory(sessionInterface);
                 break;
             case CWD:
-                changeDirectory(command.getParam(0), session);
+                changeDirectory(command.getParam(0), sessionInterface);
                 break;
             case MKD:
-                createDirectory(command.getParam(0), session);
+                createDirectory(command.getParam(0), sessionInterface);
                 break;
             case RMD:
-                remove(command.getParam(0), true, session);
+                remove(command.getParam(0), true, sessionInterface);
                 break;
             case DELE:
-                remove(command.getParam(0), false, session);
+                remove(command.getParam(0), false, sessionInterface);
                 break;
             case RETR:
-                sendFile(command.getParam(0), session);
+                sendFile(command.getParam(0), sessionInterface);
                 break;
             case STOR:
-                receiveFile(command.getParam(0), false, session);
+                receiveFile(command.getParam(0), false, sessionInterface);
                 break;
             case APPE:
-                receiveFile(command.getParam(0), true, session);
+                receiveFile(command.getParam(0), true, sessionInterface);
                 break;
             case ABOR:
-                session.abortTransfer();
+                sessionInterface.abortTransfer();
                 aborted = true;
-                session.sendResponse(Response.Type.CLOSING_DATA_CONNECTION);
+                sessionInterface.sendResponse(Response.Type.CLOSING_DATA_CONNECTION);
                 break;
             case CHMOD:
                 setPermissions(command.getParam(0), command.getParam(1));
                 break;
             case NONE:
-                session.sendResponse(Response.Type.NOT_IMPLEMENTED);
+                sessionInterface.sendResponse(Response.Type.NOT_IMPLEMENTED);
                 break;
         }
     }
@@ -109,79 +109,79 @@ public class CommandProcessor {
 
         filesystem.setPermissions(Paths.get(filename), userCanRead, userCanWrite, groupCanRead, groupCanWrite);
 
-        session.sendResponse(Response.Type.COMMAND_SUCCESSFUL);
+        sessionInterface.sendResponse(Response.Type.COMMAND_SUCCESSFUL);
     }
 
-    private void machineList(Session session) {
-        if (!session.havePassiveConnection()) return;
+    private void machineList(SessionInterface sessionInterface) {
+        if (!sessionInterface.havePassiveConnection()) return;
 
         try {
-            session.getPassiveConnection().sendData(filesystem.listFilesName(Paths.get("")));
-            session.sendResponse(Response.Type.OPENING_PASSIVE_CONNECTION, "ASCII", "/bin/ls");
+            sessionInterface.getPassiveConnection().sendData(filesystem.listFilesName(Paths.get("")));
+            sessionInterface.sendResponse(Response.Type.OPENING_PASSIVE_CONNECTION, "ASCII", "/bin/ls");
         } catch (PermissionDeniedException e) {
-            session.sendResponse(Response.Type.PERMISSION_DENIED);
+            sessionInterface.sendResponse(Response.Type.PERMISSION_DENIED);
         }
 
     }
 
-    private void sendWorkingDirectory(Session session) {
-        session.sendResponse(Response.Type.CURRENT_DIRECTORY, filesystem.getCWD().toString());
+    private void sendWorkingDirectory(SessionInterface sessionInterface) {
+        sessionInterface.sendResponse(Response.Type.CURRENT_DIRECTORY, filesystem.getCWD().toString());
     }
 
-    private void changeDirectory(String path, Session session) {
+    private void changeDirectory(String path, SessionInterface sessionInterface) {
         try{
             filesystem.changeDirectory(Paths.get(path));
-            session.sendResponse(Response.Type.REQUEST_COMPLETED, "CWD");
+            sessionInterface.sendResponse(Response.Type.REQUEST_COMPLETED, "CWD");
         } catch( FilesystemException e){
-            session.sendResponse(e.getResponse());
+            sessionInterface.sendResponse(e.getResponse());
         }
     }
 
-    private void createDirectory(String directory, Session session) {
+    private void createDirectory(String directory, SessionInterface sessionInterface) {
         try {
             filesystem.createDir(Paths.get(directory));
-            session.sendResponse(Response.Type.CREATED_DIRECTORY, directory);
+            sessionInterface.sendResponse(Response.Type.CREATED_DIRECTORY, directory);
         } catch (FilesystemException e){
-            session.sendResponse(e.getResponse());
+            sessionInterface.sendResponse(e.getResponse());
         }
     }
 
-    private void remove(String filename, boolean directory, Session session) {
+    private void remove(String filename, boolean directory, SessionInterface sessionInterface) {
         try {
             filesystem.remove(Paths.get(filename), directory);
-            session.sendResponse(Response.Type.REQUEST_COMPLETED, "RMD");
+            sessionInterface.sendResponse(Response.Type.REQUEST_COMPLETED, "RMD");
         } catch (FilesystemException e){
-            session.sendResponse(e.getResponse());
+            sessionInterface.sendResponse(e.getResponse());
         }
 
     }
 
-    private void sendFile(String filename, Session session) {
-        if (!session.havePassiveConnection()) return;
+    private void sendFile(String filename, SessionInterface sessionInterface) {
+        if (!sessionInterface.havePassiveConnection()) return;
 
         aborted = false;
 
         try {
             InputStream stream = filesystem.getFile(Paths.get(filename));
-            session.getPassiveConnection().sendData(stream);
-            session.sendResponse(Response.Type.OPENING_PASSIVE_CONNECTION, "binary", filename);
+            sessionInterface.getPassiveConnection().sendData(stream);
+            sessionInterface.sendResponse(Response.Type.OPENING_PASSIVE_CONNECTION, "binary", filename);
         } catch (FilesystemException e){
             if(!aborted)
-                session.sendResponse(e.getResponse());
+                sessionInterface.sendResponse(e.getResponse());
         }
     }
 
-    private void receiveFile(String filename, boolean override, Session session) {
-        if (!session.havePassiveConnection()) return;
+    private void receiveFile(String filename, boolean override, SessionInterface sessionInterface) {
+        if (!sessionInterface.havePassiveConnection()) return;
         aborted = false;
 
         try {
             OutputStream stream = filesystem.storeFile(Paths.get(filename), override);
-            session.getPassiveConnection().receiveData(stream);
-            session.sendResponse(Response.Type.OPENING_PASSIVE_CONNECTION, "binary", filename);
+            sessionInterface.getPassiveConnection().receiveData(stream);
+            sessionInterface.sendResponse(Response.Type.OPENING_PASSIVE_CONNECTION, "binary", filename);
         } catch (FilesystemException e){
             if(!aborted)
-                session.sendResponse(e.getResponse());
+                sessionInterface.sendResponse(e.getResponse());
         }
 
     }

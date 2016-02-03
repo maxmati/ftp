@@ -1,16 +1,17 @@
 package pl.maxmati.po.ftp.server.session;
 
-import pl.maxmati.ftp.common.Response;
-import pl.maxmati.ftp.common.Watchdog;
-import pl.maxmati.ftp.common.beans.User;
-import pl.maxmati.ftp.common.command.Command;
-import pl.maxmati.ftp.common.filesystem.Filesystem;
-import pl.maxmati.ftp.common.network.CommandConnection;
+import pl.maxmati.po.ftp.common.Response;
+import pl.maxmati.po.ftp.common.Watchdog;
+import pl.maxmati.po.ftp.common.beans.User;
+import pl.maxmati.po.ftp.common.command.Command;
+import pl.maxmati.po.ftp.common.filesystem.Filesystem;
+import pl.maxmati.po.ftp.common.network.CommandConnection;
 import pl.maxmati.po.ftp.server.Config;
 import pl.maxmati.po.ftp.server.DatabasePermissionManager;
 import pl.maxmati.po.ftp.server.UsersManager;
 import pl.maxmati.po.ftp.server.command.CommandProcessor;
 import pl.maxmati.po.ftp.server.network.PassiveConnection;
+import pl.maxmati.po.ftp.server.network.PassiveConnectionInterface;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -21,7 +22,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * Created by maxmati on 1/8/16
  */
-public class Session implements Runnable{
+public class Session implements SessionInterface {
     private final UsersManager manager;
     private final CommandConnection commandConnection;
     private final ExecutorService executor;
@@ -33,7 +34,7 @@ public class Session implements Runnable{
 
     private User user = null;
     private boolean authenticated = false;
-    private PassiveConnection passiveConnection = null;
+    private PassiveConnectionInterface passiveConnectionInterface = null;
     private final InetAddress address;
 
     public Session(Socket socket, UsersManager usersManager, ExecutorService executor,
@@ -69,15 +70,17 @@ public class Session implements Runnable{
         }
     }
 
+    @Override
     public void dataSent(boolean success) {
         if(success)
             sendResponse(Response.Type.TRANSFER_COMPLETE);
         else
             sendResponse(Response.Type.ABORTED_LOCAL_ERROR);
 
-        passiveConnection = null;
+        passiveConnectionInterface = null;
     }
 
+    @Override
     public void quit() {
         sendResponse(Response.Type.BYE);
         running.set(false);
@@ -86,10 +89,11 @@ public class Session implements Runnable{
     }
 
 
+    @Override
     public void listenForPassiveConnection() {
-        passiveConnection = new PassiveConnection(this, executor);
+        passiveConnectionInterface = new PassiveConnection(this, executor);
 
-        int port = passiveConnection.getPort();
+        int port = passiveConnectionInterface.getPort();
 
         final Config config = Config.getInstance();
         sendResponse(
@@ -100,6 +104,7 @@ public class Session implements Runnable{
         );
     }
 
+    @Override
     public void fetchUser(String username) {
         if(user == null){
             user = manager.getByName(username);
@@ -112,6 +117,7 @@ public class Session implements Runnable{
         }
     }
 
+    @Override
     public void validatePassword(String password) {
         if(user != null && !authenticated){
             authenticated = manager.validatePassword(user, password);
@@ -125,32 +131,38 @@ public class Session implements Runnable{
         }
     }
 
+    @Override
     public void sendResponse(Response.Type type, Object... params) {
         sendResponse(new Response(type, params));
     }
 
+    @Override
     public void sendResponse(Response response) {
         commandConnection.sendResponse(response);
     }
 
+    @Override
     public boolean havePassiveConnection() {
-        if(passiveConnection == null){
+        if(passiveConnectionInterface == null){
             sendResponse(Response.Type.NO_DATA_CONNECTION);
             return false;
         }
         return true;
     }
 
-    public PassiveConnection getPassiveConnection() {
-        return passiveConnection;
+    @Override
+    public PassiveConnectionInterface getPassiveConnection() {
+        return passiveConnectionInterface;
     }
 
+    @Override
     public boolean isAuthenticated() {
         return authenticated;
     }
 
+    @Override
     public void abortTransfer() {
-        if(passiveConnection != null && passiveConnection.abort())
+        if(passiveConnectionInterface != null && passiveConnectionInterface.abort())
             sendResponse(Response.Type.TRANSFER_ABORTED);
     }
 }

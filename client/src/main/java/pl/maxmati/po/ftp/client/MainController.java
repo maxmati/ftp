@@ -4,11 +4,11 @@ import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
-import pl.maxmati.ftp.common.command.Command;
-import pl.maxmati.ftp.common.exceptions.FilesystemException;
-import pl.maxmati.ftp.common.filesystem.Filesystem;
 import pl.maxmati.po.ftp.client.events.*;
 import pl.maxmati.po.ftp.client.widgets.filesystemTree.FilesystemTree;
+import pl.maxmati.po.ftp.common.command.Command;
+import pl.maxmati.po.ftp.common.exceptions.FilesystemException;
+import pl.maxmati.po.ftp.common.filesystem.Filesystem;
 
 import java.net.URL;
 import java.util.Arrays;

@@ -1,9 +1,9 @@
 package pl.maxmati.po.ftp.client.network;
 
-import pl.maxmati.ftp.common.Watchdog;
-import pl.maxmati.ftp.common.command.Command;
 import pl.maxmati.po.ftp.client.events.CommandEvent;
 import pl.maxmati.po.ftp.client.events.EventDispatcher;
+import pl.maxmati.po.ftp.common.Watchdog;
+import pl.maxmati.po.ftp.common.command.Command;
 
 /**
  * Created by maxmati on 1/19/16

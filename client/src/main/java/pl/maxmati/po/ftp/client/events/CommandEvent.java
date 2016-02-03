@@ -1,6 +1,6 @@
 package pl.maxmati.po.ftp.client.events;
 
-import pl.maxmati.ftp.common.command.Command;
+import pl.maxmati.po.ftp.common.command.Command;
 
 /**
  * Created by maxmati on 1/15/16

@@ -4,7 +4,7 @@ version '1.0-SNAPSHOT'
 apply plugin: 'java'
 apply plugin: 'application'
 
-//noinspection GroovyUnusedAssignment
+//noinspection GroovyUnusedAssignmentw
 mainClassName = 'pl.maxmati.po.ftp.server.Main'
 //noinspection GroovyUnusedAssignment
 sourceCompatibility = 1.8

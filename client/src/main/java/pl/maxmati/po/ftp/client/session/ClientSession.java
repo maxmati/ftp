@@ -1,11 +1,11 @@
 package pl.maxmati.po.ftp.client.session;
 
-import pl.maxmati.ftp.common.Response;
-import pl.maxmati.ftp.common.beans.User;
-import pl.maxmati.ftp.common.command.Command;
-import pl.maxmati.ftp.common.network.CommandConnection;
 import pl.maxmati.po.ftp.client.events.*;
 import pl.maxmati.po.ftp.client.network.ClientPassiveConnection;
+import pl.maxmati.po.ftp.common.Response;
+import pl.maxmati.po.ftp.common.beans.User;
+import pl.maxmati.po.ftp.common.command.Command;
+import pl.maxmati.po.ftp.common.network.CommandConnection;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;

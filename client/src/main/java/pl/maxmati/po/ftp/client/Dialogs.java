@@ -1,7 +1,7 @@
 package pl.maxmati.po.ftp.client;
 
 import javafx.scene.control.Alert;
-import pl.maxmati.ftp.common.exceptions.*;
+import pl.maxmati.po.ftp.common.exceptions.*;
 
 /**
  * Created by maxmati on 2/2/16
@@ -19,7 +19,7 @@ public class Dialogs {
             alert.setContentText("File not found");
         } else if( e instanceof NotDirectoryException) {
             alert.setContentText("Specified file isn't directory");
-        } else if( e instanceof NotRegularFileException ) {
+        } else if( e instanceof NotRegularFileException) {
             alert.setContentText("specified file isn't a regular file");
         } else if( e instanceof PermissionDeniedException ) {
             alert.setContentText("You don't have permissions to access this file or directory.");

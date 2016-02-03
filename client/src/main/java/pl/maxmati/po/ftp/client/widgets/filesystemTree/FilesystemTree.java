@@ -7,9 +7,9 @@ import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.paint.Color;
-import pl.maxmati.ftp.common.exceptions.FilesystemException;
-import pl.maxmati.ftp.common.filesystem.Filesystem;
 import pl.maxmati.po.ftp.client.Dialogs;
+import pl.maxmati.po.ftp.common.exceptions.FilesystemException;
+import pl.maxmati.po.ftp.common.filesystem.Filesystem;
 
 import java.io.IOException;
 import java.io.InputStream;

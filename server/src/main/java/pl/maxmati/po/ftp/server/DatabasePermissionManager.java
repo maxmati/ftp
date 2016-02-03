@@ -1,7 +1,7 @@
 package pl.maxmati.po.ftp.server;
 
-import pl.maxmati.ftp.common.PermissionManager;
-import pl.maxmati.ftp.common.beans.User;
+import pl.maxmati.po.ftp.common.PermissionManager;
+import pl.maxmati.po.ftp.common.beans.User;
 import pl.maxmati.po.ftp.server.beans.File;
 import pl.maxmati.po.ftp.server.database.dao.FilesDAO;
 

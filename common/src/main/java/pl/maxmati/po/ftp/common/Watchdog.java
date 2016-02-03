@@ -4,7 +4,10 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 /**
- * Created by maxmati on 1/8/16
+ * Resettable timer
+ *
+ * @author maxmati
+ * @version 1.0
  */
 public class Watchdog {
     private final int timeout;

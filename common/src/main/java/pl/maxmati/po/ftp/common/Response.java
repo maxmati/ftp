@@ -9,24 +9,44 @@ import java.util.regex.Pattern;
 
 
 /**
- * Created by maxmati on 1/8/16
+ * Class representing response for @see{Command}
+ *
+ * @author maxmati
+ * @version 1.0
  */
 public class Response {
 
     private final Type type;
     private final Object[] params;
 
+    /**
+     * Creates new response of type and with params
+     *
+     * @param type Type of response
+     * @param params Response params
+     */
     public Response(Type type, Object... params) {
         this.type = type;
         this.params = params;
     }
 
+    /**
+     * Creates new response from response code and message.
+     *
+     * @param code Response code
+     * @param msg Response message
+     */
     public Response(int code, String msg){
         System.out.println("Parsing msg: " + msg);
         type = Type.fromCodeAndMsg(code, msg);
         params = type.parseParams(msg);
     }
 
+    /**
+     * Creates string in Network format
+     *
+     * @return String in network format
+     */
     public String toNetworkString(){
         return String.valueOf(type.getCode()) +
                 " " +
@@ -64,6 +84,10 @@ public class Response {
         return params;
     }
 
+    /**
+     * Represents type of Response
+     *
+     */
     public enum Type{
         OPENING_PASSIVE_CONNECTION( 150, "Opening %s mode data connection for '%s'", 2),
         COMMAND_SUCCESSFUL(         200, "Command successful", 0),
